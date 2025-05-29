@@ -6,15 +6,15 @@ import os
 import json
 
 #---Global Configuration---
-DATA_FILE = 'synthetic_behavioral_data.csv' # Changed filename
-SCHEMA_FILE = 'feature_schema.json'
-DOC_FILE = 'Behavioral_Authentication_ML.md'
+DATA_FILE = 'files/synthetic_behavioral_data.csv'
+SCHEMA_FILE = 'files/feature_schema.json'
+DOC_FILE = 'files/Behavioral_Authentication_ML.md'
 
 #---Data Generation Configuration---
 NUM_NORMAL_USERS = 1000
 NUM_ANOMALOUS_USERS = 100
 TRANSACTIONS_PER_NORMAL_USER_MEAN = 50
-TRANSACTIONS_PER_ANOMALOUS_USER_MEAN = 20 # Can be adjusted
+TRANSACTIONS_PER_ANOMALOUS_USER_MEAN = 20
 START_DATE = datetime(2023, 1, 1)
 END_DATE = datetime(2023, 12, 31)
 TARGET_COLUMN = 'risk_flag_manual'
@@ -64,13 +64,13 @@ def generate_behavioral_data():
     common_merchants = [f'merchant_{i}' for i in range(1, 100)]
     common_locations = [f'loc_{i}' for i in range(1, 50)]
     common_devices = [f'dev_{i}' for i in range(1, 20)]
-    common_ips = [f'192.168.1.{i}' for i in range(1, 200)] # Smaller range for common IPs
+    common_ips = [f'192.168.1.{i}' for i in range(1, 200)]
 
     # Define less common/anomalous ranges for categorical features
-    anomalous_merchants = [f'merchant_{i}' for i in range(50, 150)] # Overlap with common
-    anomalous_locations = [f'loc_{i}' for i in range(30, 80)] # Overlap with common
-    anomalous_devices = [f'dev_{i}' for i in range(10, 30)] # Overlap with common
-    anomalous_ips = [f'10.0.0.{i}' for i in range(1, 100)] + [f'192.168.1.{i}' for i in range(150, 255)] # Mix of new and "risky" common
+    anomalous_merchants = [f'merchant_{i}' for i in range(50, 150)]
+    anomalous_locations = [f'loc_{i}' for i in range(30, 80)]
+    anomalous_devices = [f'dev_{i}' for i in range(10, 30)]
+    anomalous_ips = [f'10.0.0.{i}' for i in range(1, 100)] + [f'192.168.1.{i}' for i in range(150, 255)]
 
     print(f"Generating data for {NUM_NORMAL_USERS} normal users...")
     for _ in range(NUM_NORMAL_USERS):

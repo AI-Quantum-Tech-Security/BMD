@@ -1,0 +1,243 @@
+{
+  "description": "Schema definitions for behavioral transaction features.",
+  "features": [
+    {
+      "name": "session_duration",
+      "type": "numeric",
+      "description": "Duration of user session in seconds.",
+      "range": ">=10",
+      "example": 150.5
+    },
+    {
+      "name": "login_time_pattern",
+      "type": "string",
+      "subtype": "time",
+      "description": "Pattern of user login time (HH:MM).",
+      "format": "HH:MM",
+      "example": "14:35"
+    },
+    {
+      "name": "avg_tx_amount",
+      "type": "numeric",
+      "description": "Average transaction amount for the user (based on generation pattern).",
+      "range": "[20, 10000]",
+      "example": 500.25
+    },
+    {
+      "name": "geo_distance_delta",
+      "type": "numeric",
+      "description": "Geographical distance change from previous transaction/login location.",
+      "range": ">=0",
+      "example": 75.8
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "description": "Unique identifier for the user.",
+      "example": "user_123"
+    },
+    {
+      "name": "tx_id",
+      "type": "integer",
+      "description": "Unique identifier for the transaction.",
+      "example": 5001
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "subtype": "datetime",
+      "description": "Timestamp of the transaction.",
+      "format": "YYYY-MM-DD HH:MM:SS",
+      "example": "2023-03-15 10:30:00"
+    },
+    {
+      "name": "tx_amount",
+      "type": "numeric",
+      "description": "Amount of the current transaction.",
+      "range": ">=1",
+      "example": 125.75
+    },
+    {
+      "name": "currency",
+      "type": "categorical",
+      "description": "Currency of the transaction.",
+      "values": [
+        "PLN",
+        "EUR",
+        "USD",
+        "GBP",
+        "JPY"
+      ],
+      "example": "USD"
+    },
+    {
+      "name": "tx_type",
+      "type": "categorical",
+      "description": "Type of transaction.",
+      "values": [
+        "purchase",
+        "transfer",
+        "withdrawal",
+        "online_payment",
+        "international_transfer"
+      ],
+      "example": "purchase"
+    },
+    {
+      "name": "merchant_id",
+      "type": "categorical",
+      "description": "Identifier of the merchant involved in the transaction.",
+      "example": "merchant_42"
+    },
+    {
+      "name": "tx_location",
+      "type": "categorical",
+      "description": "Location of the transaction.",
+      "example": "loc_25"
+    },
+    {
+      "name": "device_id",
+      "type": "categorical",
+      "description": "Identifier of the device used for the transaction.",
+      "example": "dev_5"
+    },
+    {
+      "name": "ip_address",
+      "type": "string",
+      "subtype": "IP_address",
+      "description": "IP address used for the transaction.",
+      "example": "192.168.1.10"
+    },
+    {
+      "name": "is_vpn",
+      "type": "boolean",
+      "description": "Flag indicating if a VPN was detected (0=No, 1=Yes).",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0
+    },
+    {
+      "name": "avg_tx_amount_user",
+      "type": "numeric",
+      "description": "Average transaction amount for the specific user (pattern).",
+      "range": "[20, 10000]",
+      "example": 480.12
+    },
+    {
+      "name": "std_tx_amount_user",
+      "type": "numeric",
+      "description": "Standard deviation of transaction amount for the specific user (pattern).",
+      "range": ">=0",
+      "example": 55.6
+    },
+    {
+      "name": "avg_tx_hour_user",
+      "type": "numeric",
+      "description": "Average hour of the day for transactions for the specific user (pattern).",
+      "range": "[0, 23]",
+      "example": 14.5
+    },
+    {
+      "name": "device_change_freq",
+      "type": "numeric",
+      "description": "Frequency of device changes for the user.",
+      "range": "[0, 1]",
+      "example": 0.05
+    },
+    {
+      "name": "location_change_freq",
+      "type": "numeric",
+      "description": "Frequency of location changes for the user.",
+      "range": "[0, 1]",
+      "example": 0.15
+    },
+    {
+      "name": "txs_last_24h",
+      "type": "integer",
+      "description": "Number of transactions in the last 24 hours for the user.",
+      "range": ">=0",
+      "example": 5
+    },
+    {
+      "name": "txs_last_7d",
+      "type": "integer",
+      "description": "Number of transactions in the last 7 days for the user.",
+      "range": ">=0",
+      "example": 20
+    },
+    {
+      "name": "has_recent_password_reset",
+      "type": "boolean",
+      "description": "Flag indicating if the user had a recent password reset (0=No, 1=Yes).",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0
+    },
+    {
+      "name": "is_new_device",
+      "type": "boolean",
+      "description": "Flag indicating if a new device was used (0=No, 1=Yes).",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0
+    },
+    {
+      "name": "tx_hour",
+      "type": "numeric",
+      "description": "Hour of the current transaction (0-23).",
+      "range": "[0, 23]",
+      "example": 12
+    },
+    {
+      "name": "risk_flag_manual",
+      "type": "boolean",
+      "description": "Manual label for transaction risk (0=Normal, 1=Anomalous/Fraud). This is the target variable.",
+      "values": [
+        0,
+        1
+      ],
+      "label": true
+    },
+    {
+      "name": "anomaly_score_baseline",
+      "type": "numeric",
+      "description": "Baseline anomaly score from a theoretical previous system. Not used as a feature for this model.",
+      "range": "[0, 1]",
+      "example": 0.15
+    },
+    {
+      "name": "country_mismatch",
+      "type": "boolean",
+      "description": "Flag indicating if transaction country mismatches user's usual country (0=No, 1=Yes).",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0
+    },
+    {
+      "name": "is_weekend",
+      "type": "boolean",
+      "description": "Flag indicating if the transaction occurred on a weekend (0=No, 1=Yes).",
+      "values": [
+        0,
+        1
+      ],
+      "example": 1
+    },
+    {
+      "name": "ip_risk_score",
+      "type": "numeric",
+      "description": "Risk score associated with the IP address.",
+      "range": "[0, 1]",
+      "example": 0.08
+    }
+  ],
+  "target_column": "risk_flag_manual"
+}

@@ -10,14 +10,14 @@ from sklearn.metrics import (
 )
 import joblib
 import os
-import json # Import json module
+import json
 
 #---Global Configuration---
-DATA_FILE = 'synthetic_behavioral_data.csv' # Using the harder data
-MODEL_OUTPUT_FILE = 'risk_model.pkl'
+DATA_FILE = 'files/synthetic_behavioral_data.csv'
+MODEL_OUTPUT_FILE = 'files/risk_model.pkl'
 TARGET_COLUMN = 'risk_flag_manual'
-EVAL_REPORT_FILE = 'risk_model_eval.md'
-MODEL_FEATURES_FILE = 'model_features.json' # New file to store feature names
+EVAL_REPORT_FILE = 'files/risk_model_eval.md'
+MODEL_FEATURES_FILE = 'files/model_features.json'
 
 #---Feature Definitions for Model Preprocessing---
 NUMERIC_FEATURES_FOR_MODEL = [
@@ -160,7 +160,7 @@ def train_evaluate_model():
         print(f"ROC-AUC Score on test set: {auc_score:.4f}")
     except ValueError as e:
         print(f"Could not calculate ROC-AUC. Error: {e}")
-        auc_score = 'N/A' # Set to N/A if calculation fails
+        auc_score = 'N/A'
 
     precision = precision_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred)
