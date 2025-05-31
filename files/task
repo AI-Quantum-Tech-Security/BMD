@@ -1,133 +1,74 @@
-Here's a consolidated plan for your Behavioral Authentication ML project, organized into logical steps with clear deliverables and explanations for each.
+# Behavioral Authentication ML Project Overview
+
+This document outlines the machine learning project for behavioral authentication, covering data generation, feature schema, model training, and evaluation as per the project requirements.
+
+## 1. Data Generation (`files/synthetic_behavioral_dataset.csv`)
+
+Synthetic behavioral transaction data is generated to simulate normal and anomalous user activities with controlled label distribution.
+
+### Configuration:
+- **Number of Normal Users:** 1000
+- **Number of Anomalous Users:** 100
+- **Transaction Period:** 2023-01-01 to 2023-12-31
+- **Target Label Distribution:**
+  - Fraud Rate: 5.0%
+  - Suspicious Rate: 15.0%
+  - Legit Rate: 80.0%
+
+## 2. Feature Schema (`files/feature_schema.json`)
+
+The dataset includes **12 core behavioral features** as specified in the project requirements:
+
+### Core Behavioral Features (8-15 as required):
+| Feature Name | Type | Description | Range/Values | Example |
+|---|---|---|---|---|
+| avg_tx_amount | numeric | Average transaction amount for the user. | [20, 10000] | 500.25 |
+| device_change_freq | numeric | Frequency of device changes for the user. | [0, 1] | 0.05 |
+| tx_hour | numeric | Hour of the transaction (0-23). | [0, 23] | 14 |
+| location_change_freq | numeric | Frequency of location changes for the user. | [0, 1] | 0.15 |
+| is_new_device | boolean | Boolean flag indicating if the transaction is from a new device. | 0, 1 | 0 |
+| transaction_count_24h | integer | Number of transactions in the last 24 hours. | >=0 | 5 |
+| time_since_last_tx | numeric | Time elapsed since the user's previous transaction (in hours). | >=0 | 2.5 |
+| tx_amount_to_balance_ratio | numeric | Ratio of transaction amount to user's account balance. | [0, 1] | 0.15 |
+| ip_address_reputation | numeric | Reputation score of the IP address (0=bad, 1=good). | [0, 1] | 0.85 |
+| is_weekend | boolean | Boolean flag for weekend transactions. | 0, 1 | 1 |
+| transaction_velocity_10min | integer | Number of transactions in the last 10 minutes. | >=0 | 2 |
+| country_change_flag | boolean | Boolean flag if the transaction origin country is different from usual. | 0, 1 | 0 |
+
+
+### Target Variables:
+- **Binary Target:** `risk_flag_manual` - Simple normal/anomalous classification
+- **Categorical Target:** `risk_label` - Three-class classification (legit, suspicious, fraud)
+
+## 3. Heuristic Labeling Logic
+
+The labeling follows the exact combinations specified in the project requirements:
+
+### Fraud Conditions:
+- **Primary:** `tx_amount_to_balance_ratio` + `is_new_device` + high `location_change_freq`
+- **Secondary:** Very high `transaction_velocity_10min` (>=5 transactions)
+- **Tertiary:** Low `ip_address_reputation` + `country_change_flag`
+
+### Suspicious Conditions:
+- **Primary:** High `transaction_velocity_10min` + unusual `tx_hour` (early morning/late night)
+- **Secondary:** Transaction amount significantly above user average
+- **Tertiary:** `country_change_flag`, `is_new_device`, or low IP reputation
+
+## 4. Data Quality Assurance
+
+- Balanced class distribution with controlled proportions
+- Realistic behavioral patterns differentiate normal vs anomalous users
+- Time-based features include proper temporal relationships
+- Feature correlations reflect real-world financial behavior patterns
+
+## 5. Next Steps
+
+This dataset is ready for model training phase as outlined in the project plan:
+- Train RandomForest, XGBoost, or LightGBM models
+- Evaluate using ROC-AUC, Precision/Recall, and Confusion Matrix
+- Proceed to API development phase
 
 ---
-
-# Behavioral Authentication ML Project Plan
-
-This document outlines the steps to develop a machine learning-based behavioral authentication system.
-
-## 1. Data Generation and Feature Schema Design
-
-This initial phase focuses on creating the dataset and defining the features that will be used for model training.
-
-### 1.1. Design Behavioral Feature Schema
-
-Before generating data, we'll define the structure and types of our behavioral features.
-
-* **Actions:**
-    * Define 8–15 behavioral features. Examples include:
-        * `avg_tx_amount`: Average transaction amount for a user.
-        * `device_change_freq`: Frequency of device changes for a user.
-        * `tx_hour`: Hour of the transaction (0-23).
-        * `location_change_freq`: Frequency of location changes for a user.
-        * `is_new_device`: Boolean flag indicating if the transaction is from a new device.
-        * `transaction_count_24h`: Number of transactions in the last 24 hours.
-        * `time_since_last_tx`: Time elapsed since the user's previous transaction.
-        * `tx_amount_to_balance_ratio`: Ratio of transaction amount to user's account balance.
-        * `ip_address_reputation`: (Simulated) reputation score of the IP address.
-        * `is_weekend`: Boolean flag for weekend transactions.
-        * `transaction_velocity_10min`: Number of transactions in the last 10 minutes.
-        * `country_change_flag`: Boolean flag if the transaction origin country is different from the usual.
-    * Map data types for each feature (e.g., numeric, categorical, boolean).
-    * Define logic for labeling transactions (`fraud`, `legit`, `suspicious`) based on combinations of these features. This will be heuristic-based for synthetic data. For example:
-        * **Fraud:** High `tx_amount_to_balance_ratio` + `is_new_device` + high `location_change_freq`.
-        * **Suspicious:** High `transaction_velocity_10min` + unusual `tx_hour`.
-        * **Legit:** Default if no other flags are triggered.
-
-* **Deliverable:**
-    * `feature_schema.json` or `.yaml` file describing each feature with examples and value ranges.
-    * Update `Behavioral_Authentication_ML.md` with a schema overview.
-
-### 1.2. Generate Synthetic Behavioral Dataset
-
-We will create a Python script to simulate realistic transaction data based on the defined schema.
-
-* **Tasks:**
-    * Implement a Python script (`generate_behavioral_data.py`) that:
-        * Simulates realistic financial transactions per user.
-        * Embeds behavioral variation (e.g., some users might have stable behavior, others more erratic).
-        * Includes a `risk_flag` (label) using the basic heuristics or randomization defined in the schema design phase.
-        * Ensures inclusion of time-based behavior (e.g., `tx_hour`, `is_weekend` flag).
-* **Deliverable:**
-    * `synthetic_behavioral_dataset.csv` (the generated dataset).
-    * `generate_behavioral_data.py` (the Python script).
-
-## 2. Model Training and Evaluation
-
-This phase involves training a machine learning model on the generated data and evaluating its performance.
-
-### 2.1. Train Machine Learning Model
-
-We will train a classification model to predict the `risk_flag`.
-
-* **Tasks:**
-    * Train using models like RandomForest, XGBoost, or LightGBM.
-    * Use `risk_flag` as the target label.
-    * Perform necessary data preprocessing (e.g., encoding categorical features, scaling numerical features).
-* **Deliverable:**
-    * `risk_model.pkl` (the trained model, saved using `pickle` or `joblib`).
-
-### 2.2. Evaluate Model Performance
-
-After training, we'll evaluate the model's effectiveness.
-
-* **Tasks:**
-    * Evaluate using the following metrics:
-        * ROC-AUC
-        * Precision / Recall (for each class: legit, suspicious, fraud)
-        * Confusion Matrix
-* **Deliverable:**
-    * `risk_model_eval.md` (a report detailing the evaluation metrics and findings).
-
-## 3. API Development and Deployment
-
-This phase focuses on building a microservice to expose our trained model as an API.
-
-### 3.1. Build API Microservice
-
-We will create a Python microservice using Flask or FastAPI.
-
-* **Tasks:**
-    * Build API with Flask or FastAPI.
-    * Add endpoint `/risk-score` that:
-        * Accepts transaction features in JSON format.
-        * Returns:
-            * `risk_score` (float): A probability or numerical score indicating risk.
-            * `risk_flag` (e.g., “legit”, “suspicious”, “fraud”): The categorical risk level.
-    * Include test inputs for the API.
-    * Generate Swagger/OpenAPI documentation for the API.
-* **Deliverable:**
-    * Running Python microservice (`ml_risk_api/` directory containing all API code).
-    * Example `curl` or Postman calls for testing the endpoint.
-    * Swagger API documentation (e.g., accessible via `/docs` endpoint if using FastAPI, or a generated `swagger.json`/`openapi.json`).
-
-### 3.2. Add Logging, CORS, and HTTPS Support
-
-This step enhances the API for debugging, security, and integration.
-
-* **Tasks:**
-    * **Add logging for inputs/outputs for debugging:** Implement logging within the `ml_risk_api` to capture incoming request payloads and outgoing responses. This is crucial for debugging and monitoring.
-    * **Add CORS and HTTPS if needed:**
-        * **CORS (Cross-Origin Resource Sharing):** Implement CORS headers if the API will be consumed by a web application hosted on a different domain. This prevents browser security restrictions.
-        * **HTTPS (Hypertext Transfer Protocol Secure):** Implement HTTPS for secure communication. For a production environment, this is essential. For local testing, self-signed certificates can be used, but for deployment, a proper certificate authority (CA) issued certificate is required.
-* **Deliverable:**
-    * `final_risk_api.py` (the main API script) with logging and HTTPS support implemented.
-    * `ML_API_Integration.md` (integration guide including instructions for setting up HTTPS and consuming the API).
-
-## 4. Integration Testing (Java App)
-
-This final step involves testing the deployed API from a client application.
-
-### 4.1. Test from Java App using Synthetic Data
-
-We will simulate an integration scenario using a Java application.
-
-* **Tasks:**
-    * Develop a simple Java application (or a test script) that generates synthetic transaction data (similar in format to the data used for training).
-    * The Java app will make API calls to the `/risk-score` endpoint of the Python microservice.
-    * Verify that the Java app can successfully send data and receive `risk_score` and `risk_flag` responses.
-
-* **Deliverable:** (Implicit within the `ML_API_Integration.md` as demonstration of consumption)
-    * Instructions or a simple code snippet in `ML_API_Integration.md` showing how a Java application would interact with the API, including handling of HTTPS and JSON payloads.
-
----
+*Generated by: `generate_behavioral_data.py`*
+*Schema file: `files/feature_schema.json`*
+*Dataset file: `files/synthetic_behavioral_dataset.csv`*
