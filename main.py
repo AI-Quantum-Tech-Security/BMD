@@ -13,7 +13,7 @@ import os
 import json
 
 #---Global Configuration---
-DATA_FILE = 'files/synthetic_behavioral_data.csv'
+DATA_FILE = 'files/synthetic_behavioral_dataset.csv'
 MODEL_OUTPUT_FILE = 'files/risk_model.pkl'
 TARGET_COLUMN = 'risk_flag_manual'
 EVAL_REPORT_FILE = 'files/risk_model_eval.md'

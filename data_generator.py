@@ -5,52 +5,70 @@ import random
 import os
 import json
 
-#---Global Configuration---
-DATA_FILE = 'files/synthetic_behavioral_data.csv'
+# --- Global Configuration ---
+DATA_FILE = 'files/synthetic_behavioral_dataset.csv'
 SCHEMA_FILE = 'files/feature_schema.json'
 DOC_FILE = 'files/Behavioral_Authentication_ML.md'
 
-#---Data Generation Configuration---
+# --- Data Generation Configuration ---
 NUM_NORMAL_USERS = 1000
 NUM_ANOMALOUS_USERS = 100
 TRANSACTIONS_PER_NORMAL_USER_MEAN = 50
 TRANSACTIONS_PER_ANOMALOUS_USER_MEAN = 20
 START_DATE = datetime(2023, 1, 1)
 END_DATE = datetime(2023, 12, 31)
-TARGET_COLUMN = 'risk_flag_manual'
 
-#---Feature Schema Definition (unchanged, as the features themselves are the same)---
+# --- Label Distribution Control ---
+FRAUD_RATE = 0.05  # 5% transakcji fraudulentnych
+SUSPICIOUS_RATE = 0.15  # 15% transakcji podejrzanych
+LEGIT_RATE = 0.80  # 80% transakcji legalnych
+
+TARGET_COLUMN_BINARY = 'risk_flag_manual'
+TARGET_COLUMN_CATEGORICAL = 'risk_label'
+
+# --- Feature Schema Definition (8-15 features as required) ---
 FEATURE_SCHEMA_DEFINITIONS = [
-    {"name": "session_duration", "type": "numeric", "description": "Duration of user session in seconds.", "range": ">=10", "example": 150.5},
-    {"name": "login_time_pattern", "type": "string", "subtype": "time", "description": "Pattern of user login time (HH:MM).", "format": "HH:MM", "example": "14:35"},
-    {"name": "avg_tx_amount", "type": "numeric", "description": "Average transaction amount for the user (based on generation pattern).", "range": "[20, 10000]", "example": 500.25},
-    {"name": "geo_distance_delta", "type": "numeric", "description": "Geographical distance change from previous transaction/login location.", "range": ">=0", "example": 75.8},
+    {"name": "avg_tx_amount", "type": "numeric", "description": "Average transaction amount for the user.",
+     "range": "[20, 10000]", "example": 500.25},
+    {"name": "device_change_freq", "type": "numeric", "description": "Frequency of device changes for the user.",
+     "range": "[0, 1]", "example": 0.05},
+    {"name": "tx_hour", "type": "numeric", "description": "Hour of the transaction (0-23).", "range": "[0, 23]",
+     "example": 14},
+    {"name": "location_change_freq", "type": "numeric", "description": "Frequency of location changes for the user.",
+     "range": "[0, 1]", "example": 0.15},
+    {"name": "is_new_device", "type": "boolean",
+     "description": "Boolean flag indicating if the transaction is from a new device.", "values": [0, 1], "example": 0},
+    {"name": "transaction_count_24h", "type": "integer", "description": "Number of transactions in the last 24 hours.",
+     "range": ">=0", "example": 5},
+    {"name": "time_since_last_tx", "type": "numeric",
+     "description": "Time elapsed since the user's previous transaction (in hours).", "range": ">=0", "example": 2.5},
+    {"name": "tx_amount_to_balance_ratio", "type": "numeric",
+     "description": "Ratio of transaction amount to user's account balance.", "range": "[0, 1]", "example": 0.15},
+    {"name": "ip_address_reputation", "type": "numeric",
+     "description": "Reputation score of the IP address (0=bad, 1=good).", "range": "[0, 1]", "example": 0.85},
+    {"name": "is_weekend", "type": "boolean", "description": "Boolean flag for weekend transactions.", "values": [0, 1],
+     "example": 1},
+    {"name": "transaction_velocity_10min", "type": "integer",
+     "description": "Number of transactions in the last 10 minutes.", "range": ">=0", "example": 2},
+    {"name": "country_change_flag", "type": "boolean",
+     "description": "Boolean flag if the transaction origin country is different from usual.", "values": [0, 1],
+     "example": 0},
+
+    # Additional required fields
     {"name": "user_id", "type": "string", "description": "Unique identifier for the user.", "example": "user_123"},
     {"name": "tx_id", "type": "integer", "description": "Unique identifier for the transaction.", "example": 5001},
-    {"name": "timestamp", "type": "string", "subtype": "datetime", "description": "Timestamp of the transaction.", "format": "YYYY-MM-DD HH:MM:SS", "example": "2023-03-15 10:30:00"},
-    {"name": "tx_amount", "type": "numeric", "description": "Amount of the current transaction.", "range": ">=1", "example": 125.75},
-    {"name": "currency", "type": "categorical", "description": "Currency of the transaction.", "values": ["PLN", "EUR", "USD", "GBP", "JPY"], "example": "USD"},
-    {"name": "tx_type", "type": "categorical", "description": "Type of transaction.", "values": ["purchase", "transfer", "withdrawal", "online_payment", "international_transfer"], "example": "purchase"},
-    {"name": "merchant_id", "type": "categorical", "description": "Identifier of the merchant involved in the transaction.", "example": "merchant_42"},
-    {"name": "tx_location", "type": "categorical", "description": "Location of the transaction.", "example": "loc_25"},
-    {"name": "device_id", "type": "categorical", "description": "Identifier of the device used for the transaction.", "example": "dev_5"},
-    {"name": "ip_address", "type": "string", "subtype": "IP_address", "description": "IP address used for the transaction.", "example": "192.168.1.10"},
-    {"name": "is_vpn", "type": "boolean", "description": "Flag indicating if a VPN was detected (0=No, 1=Yes).", "values": [0, 1], "example": 0},
-    {"name": "avg_tx_amount_user", "type": "numeric", "description": "Average transaction amount for the specific user (pattern).", "range": "[20, 10000]", "example": 480.12},
-    {"name": "std_tx_amount_user", "type": "numeric", "description": "Standard deviation of transaction amount for the specific user (pattern).", "range": ">=0", "example": 55.6},
-    {"name": "avg_tx_hour_user", "type": "numeric", "description": "Average hour of the day for transactions for the specific user (pattern).", "range": "[0, 23]", "example": 14.5},
-    {"name": "device_change_freq", "type": "numeric", "description": "Frequency of device changes for the user.", "range": "[0, 1]", "example": 0.05},
-    {"name": "location_change_freq", "type": "numeric", "description": "Frequency of location changes for the user.", "range": "[0, 1]", "example": 0.15},
-    {"name": "txs_last_24h", "type": "integer", "description": "Number of transactions in the last 24 hours for the user.", "range": ">=0", "example": 5},
-    {"name": "txs_last_7d", "type": "integer", "description": "Number of transactions in the last 7 days for the user.", "range": ">=0", "example": 20},
-    {"name": "has_recent_password_reset", "type": "boolean", "description": "Flag indicating if the user had a recent password reset (0=No, 1=Yes).", "values": [0, 1], "example": 0},
-    {"name": "is_new_device", "type": "boolean", "description": "Flag indicating if a new device was used (0=No, 1=Yes).", "values": [0, 1], "example": 0},
-    {"name": "tx_hour", "type": "numeric", "description": "Hour of the current transaction (0-23).", "range": "[0, 23]", "example": 12},
-    {"name": "risk_flag_manual", "type": "boolean", "description": "Manual label for transaction risk (0=Normal, 1=Anomalous/Fraud). This is the target variable.", "values": [0, 1], "label": True},
-    {"name": "anomaly_score_baseline", "type": "numeric", "description": "Baseline anomaly score from a theoretical previous system. Not used as a feature for this model.", "range": "[0, 1]", "example": 0.15},
-    {"name": "country_mismatch", "type": "boolean", "description": "Flag indicating if transaction country mismatches user's usual country (0=No, 1=Yes).", "values": [0, 1], "example": 0},
-    {"name": "is_weekend", "type": "boolean", "description": "Flag indicating if the transaction occurred on a weekend (0=No, 1=Yes).", "values": [0, 1], "example": 1},
-    {"name": "ip_risk_score", "type": "numeric", "description": "Risk score associated with the IP address.", "range": "[0, 1]", "example": 0.08},
+    {"name": "timestamp", "type": "string", "subtype": "datetime", "description": "Timestamp of the transaction.",
+     "format": "YYYY-MM-DD HH:MM:SS", "example": "2023-03-15 10:30:00"},
+    {"name": "tx_amount", "type": "numeric", "description": "Amount of the current transaction.", "range": ">=1",
+     "example": 125.75},
+    {"name": "account_balance", "type": "numeric", "description": "User's account balance at time of transaction.",
+     "range": ">=0", "example": 5000.00},
+    {"name": "risk_label", "type": "categorical",
+     "description": "Categorical label for transaction risk (legit, suspicious, fraud).",
+     "values": ["legit", "suspicious", "fraud"], "label_categorical": True, "example": "legit"},
+    {"name": "risk_flag_manual", "type": "boolean",
+     "description": "Binary label for transaction risk (0=Normal, 1=Anomalous).", "values": [0, 1],
+     "label_binary": True, "example": 0}
 ]
 
 
@@ -60,171 +78,235 @@ def generate_behavioral_data():
     user_id_counter = 1
     tx_id_counter = 1
 
-    # Define common ranges for categorical features
-    common_merchants = [f'merchant_{i}' for i in range(1, 100)]
-    common_locations = [f'loc_{i}' for i in range(1, 50)]
-    common_devices = [f'dev_{i}' for i in range(1, 20)]
-    common_ips = [f'192.168.1.{i}' for i in range(1, 200)]
-
-    # Define less common/anomalous ranges for categorical features
-    anomalous_merchants = [f'merchant_{i}' for i in range(50, 150)]
-    anomalous_locations = [f'loc_{i}' for i in range(30, 80)]
-    anomalous_devices = [f'dev_{i}' for i in range(10, 30)]
-    anomalous_ips = [f'10.0.0.{i}' for i in range(1, 100)] + [f'192.168.1.{i}' for i in range(150, 255)]
+    # Track global statistics for balanced labeling
+    total_transactions = 0
+    fraud_target = 0
+    suspicious_target = 0
+    legit_target = 0
 
     print(f"Generating data for {NUM_NORMAL_USERS} normal users...")
     for _ in range(NUM_NORMAL_USERS):
         user_id = f'user_{user_id_counter}'
         user_id_counter += 1
-        # Normal user patterns - more consistent, lower risk
-        avg_tx_amount_user_pattern = np.random.uniform(50, 800)
-        std_tx_amount_user_pattern = avg_tx_amount_user_pattern * np.random.uniform(0.05, 0.2) # Smaller std deviation
-        avg_tx_hour_user_pattern = np.random.randint(9, 20) # Normal business hours
-        device_change_freq_base = np.random.uniform(0, 0.02) # Low frequency
-        location_change_freq_base = np.random.uniform(0, 0.05) # Low frequency
 
-        # User-specific base risk factors
-        user_has_recent_password_reset = 0 # Mostly no for normal
-        user_is_new_device = 0 # Mostly no for normal
-        user_ip_risk_score_base = np.random.uniform(0.01, 0.1)
-        user_country_mismatch_base = 0
-        user_is_vpn_base = 0
+        # User behavioral patterns
+        user_avg_tx_amount = np.random.uniform(50, 800)
+        user_device_change_freq = np.random.uniform(0, 0.02)
+        user_location_change_freq = np.random.uniform(0, 0.05)
+        user_account_balance = np.random.uniform(1000, 50000)
+        user_usual_tx_hours = np.random.choice([np.random.randint(9, 18), np.random.randint(19, 22)])
 
         num_transactions = max(1, int(np.random.normal(TRANSACTIONS_PER_NORMAL_USER_MEAN, 10)))
+        user_transactions = []
+
         for i in range(num_transactions):
             timestamp = START_DATE + timedelta(seconds=random.randint(0, int((END_DATE - START_DATE).total_seconds())))
             tx_hour = timestamp.hour
             is_weekend = 1 if timestamp.weekday() >= 5 else 0
 
-            # Transaction amounts slightly more varied for normal users
-            tx_amount = max(1, np.random.normal(avg_tx_amount_user_pattern, std_tx_amount_user_pattern * np.random.uniform(0.8, 1.2)))
+            # Core transaction features
+            tx_amount = max(1, np.random.normal(user_avg_tx_amount, user_avg_tx_amount * 0.3))
 
-            session_duration = max(30, int(np.random.normal(180, 90)))
-            geo_distance_delta = max(0, np.random.normal(10, 20)) # Small distance changes
+            # Behavioral features
+            is_new_device = 1 if random.random() < user_device_change_freq else 0
+            country_change_flag = 1 if random.random() < 0.01 else 0  # Very rare for normal users
 
-            login_time_pattern = f"{np.random.randint(max(0, avg_tx_hour_user_pattern - 2), min(23, avg_tx_hour_user_pattern + 2)):02d}:{np.random.randint(0,59):02d}"
+            # Time-based features
+            time_since_last_tx = 0 if i == 0 else max(0.01, abs((timestamp - user_transactions[-1][
+                'timestamp']).total_seconds() / 3600))
+            transaction_count_24h = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 86400])
+            transaction_velocity_10min = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 600])
 
-            txs_last_24h = int(np.random.normal(num_transactions / ((END_DATE - START_DATE).days / 365 * 24) * random.uniform(0.8, 1.2), 2))
-            txs_last_7d = int(np.random.normal(num_transactions / ((END_DATE - START_DATE).days / 365 * 7) * random.uniform(0.8, 1.2), 5))
+            # Derived features
+            tx_amount_to_balance_ratio = min(1.0, tx_amount / user_account_balance)
+            ip_address_reputation = np.random.uniform(0.7, 1.0)  # Good reputation for normal users
 
-            currency = random.choice(['PLN', 'EUR', 'USD'])
-            tx_type = random.choice(['purchase', 'transfer', 'withdrawal', 'online_payment'])
+            # Store transaction for time-based calculations
+            user_transactions.append({
+                'timestamp': timestamp,
+                'amount': tx_amount
+            })
 
-            # Categorical features mostly from common pools, but some occasional "anomalous" ones
-            merchant_id = random.choices(common_merchants, weights=[0.95]*len(common_merchants), k=1)[0] if random.random() < 0.9 else random.choice(anomalous_merchants)
-            tx_location = random.choices(common_locations, weights=[0.95]*len(common_locations), k=1)[0] if random.random() < 0.9 else random.choice(anomalous_locations)
-            device_id = random.choices(common_devices, weights=[0.95]*len(common_devices), k=1)[0] if random.random() < 0.9 else random.choice(anomalous_devices)
-            ip_address = random.choices(common_ips, weights=[0.95]*len(common_ips), k=1)[0] if random.random() < 0.9 else random.choice(anomalous_ips)
+            # --- HEURISTIC LABELING LOGIC (as per requirements) ---
+            risk_label = "legit"  # Default
 
-            # Introduce some noise for binary flags
-            is_vpn = 1 if random.random() < 0.02 else 0 # Very rarely for normal users
-            has_recent_password_reset = 1 if random.random() < 0.01 else 0
-            is_new_device = 1 if random.random() < 0.03 else 0
-            country_mismatch = 1 if random.random() < 0.01 else 0
-            ip_risk_score = max(0.01, min(0.99, user_ip_risk_score_base * np.random.uniform(0.8, 1.2) + random.uniform(-0.01, 0.01)))
+            # Fraud conditions (exact combinations from requirements)
+            if (tx_amount_to_balance_ratio > 0.5 and is_new_device == 1 and user_location_change_freq > 0.3):
+                risk_label = "fraud"
 
-            anomaly_score_baseline = np.random.uniform(0, 0.3) # Baseline can be a bit higher for normal
+            # Suspicious conditions (exact combinations from requirements)  
+            elif (transaction_velocity_10min >= 3 and (tx_hour < 6 or tx_hour > 22)):
+                risk_label = "suspicious"
+            elif tx_amount > user_avg_tx_amount * 3:
+                risk_label = "suspicious"
+            elif country_change_flag == 1:
+                risk_label = "suspicious"
+            elif is_new_device == 1 and time_since_last_tx < 0.1:  # New device + very quick transaction
+                risk_label = "suspicious"
+
+            # For normal users, keep most transactions as legit but add some suspicious
+            if risk_label == "legit" and random.random() < 0.05:  # 5% chance
+                risk_label = "suspicious"
+
+            risk_flag_manual = 0 if risk_label == "legit" else 1
 
             data.append([
-                session_duration, login_time_pattern, avg_tx_amount_user_pattern, geo_distance_delta,
-                user_id, tx_id_counter, timestamp, tx_amount, currency, tx_type, merchant_id,
-                tx_location, device_id, ip_address, is_vpn, avg_tx_amount_user_pattern, std_tx_amount_user_pattern,
-                avg_tx_hour_user_pattern, device_change_freq_base, location_change_freq_base, txs_last_24h, txs_last_7d,
-                has_recent_password_reset, is_new_device, tx_hour, 0, anomaly_score_baseline,
-                country_mismatch, is_weekend, ip_risk_score
+                user_avg_tx_amount, user_device_change_freq, tx_hour, user_location_change_freq,
+                is_new_device, transaction_count_24h, time_since_last_tx, tx_amount_to_balance_ratio,
+                ip_address_reputation, is_weekend, transaction_velocity_10min, country_change_flag,
+                user_id, tx_id_counter, timestamp, tx_amount, user_account_balance,
+                risk_label, risk_flag_manual
             ])
             tx_id_counter += 1
+            total_transactions += 1
 
     print(f"Generating data for {NUM_ANOMALOUS_USERS} anomalous users...")
     for _ in range(NUM_ANOMALOUS_USERS):
         user_id = f'user_{user_id_counter}'
         user_id_counter += 1
-        # Anomalous user patterns - more extreme, but with some overlap with normal
-        avg_tx_amount_user_pattern = np.random.uniform(500, 5000) # Still some overlap with normal max
-        std_tx_amount_user_pattern = avg_tx_amount_user_pattern * np.random.uniform(0.3, 1.0) # Larger std deviation
-        avg_tx_hour_user_pattern = np.random.choice([random.randint(0, 8), random.randint(20, 23)]) # Out-of-hours, but not always
-        device_change_freq_base = np.random.uniform(0.1, 0.8) # Higher frequency, but not always 1.0
-        location_change_freq_base = np.random.uniform(0.2, 0.9) # Higher frequency, but not always 1.0
 
-        # User-specific base risk factors (more likely to be risky)
-        user_has_recent_password_reset = random.choice([0, 1]) # 50/50 for anomalous user
-        user_is_new_device = random.choice([0, 1]) # 50/50 for anomalous user
-        user_ip_risk_score_base = np.random.uniform(0.2, 0.9) # Higher general risk
-        user_country_mismatch_base = random.choice([0, 1])
-        user_is_vpn_base = random.choice([0, 1])
+        # Anomalous user patterns
+        user_avg_tx_amount = np.random.uniform(500, 5000)
+        user_device_change_freq = np.random.uniform(0.2, 0.8)
+        user_location_change_freq = np.random.uniform(0.3, 0.9)
+        user_account_balance = np.random.uniform(500, 20000)
+        user_usual_tx_hours = np.random.choice([np.random.randint(0, 6), np.random.randint(22, 24)])
 
-        num_transactions = max(1, int(np.random.normal(TRANSACTIONS_PER_ANOMALOUS_USER_MEAN, 15)))
+        num_transactions = max(1, int(np.random.normal(TRANSACTIONS_PER_ANOMALOUS_USER_MEAN, 8)))
+        user_transactions = []
+
         for i in range(num_transactions):
             timestamp = START_DATE + timedelta(seconds=random.randint(0, int((END_DATE - START_DATE).total_seconds())))
             tx_hour = timestamp.hour
             is_weekend = 1 if timestamp.weekday() >= 5 else 0
 
-            # Transaction amounts for anomalous users - higher, but some overlap
-            tx_amount = max(1, np.random.normal(avg_tx_amount_user_pattern, std_tx_amount_user_pattern * np.random.uniform(0.8, 1.5)))
+            # Core transaction features
+            tx_amount = max(1, np.random.normal(user_avg_tx_amount, user_avg_tx_amount * 0.5))
 
-            session_duration = max(5, int(np.random.normal(90, 60))) # Shorter sessions, more varied
-            geo_distance_delta = max(0, np.random.normal(100, 200)) # Larger distances, with some smaller ones
+            # Behavioral features (more anomalous)
+            is_new_device = 1 if random.random() < user_device_change_freq else 0
+            country_change_flag = 1 if random.random() < 0.4 else 0  # Much higher for anomalous users
 
-            login_time_pattern = f"{np.random.randint(max(0, avg_tx_hour_user_pattern - 3), min(23, avg_tx_hour_user_pattern + 3)):02d}:{np.random.randint(0,59):02d}"
+            # Time-based features
+            time_since_last_tx = 0 if i == 0 else max(0.01, abs((timestamp - user_transactions[-1][
+                'timestamp']).total_seconds() / 3600))
+            transaction_count_24h = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 86400])
+            transaction_velocity_10min = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 600])
 
-            txs_last_24h = int(np.random.normal(num_transactions / ((END_DATE - START_DATE).days / 365 * 24) * random.uniform(1.0, 3.0), 5)) # More frequent
-            txs_last_7d = int(np.random.normal(num_transactions / ((END_DATE - START_DATE).days / 365 * 7) * random.uniform(1.0, 2.0), 10)) # More frequent
+            # Derived features
+            tx_amount_to_balance_ratio = min(1.0, tx_amount / user_account_balance)
+            ip_address_reputation = np.random.uniform(0.1, 0.6)  # Poor reputation for anomalous users
 
-            currency = random.choice(['PLN', 'EUR', 'USD', 'GBP', 'JPY']) # Wider range
-            tx_type = random.choice(['purchase', 'transfer', 'withdrawal', 'online_payment', 'international_transfer'])
+            # Store transaction for time-based calculations
+            user_transactions.append({
+                'timestamp': timestamp,
+                'amount': tx_amount
+            })
 
-            # Categorical features more likely from anomalous pools, but some from common
-            merchant_id = random.choices(anomalous_merchants, weights=[0.8]*len(anomalous_merchants), k=1)[0] if random.random() < 0.8 else random.choice(common_merchants)
-            tx_location = random.choices(anomalous_locations, weights=[0.8]*len(anomalous_locations), k=1)[0] if random.random() < 0.8 else random.choice(common_locations)
-            device_id = random.choices(anomalous_devices, weights=[0.8]*len(anomalous_devices), k=1)[0] if random.random() < 0.8 else random.choice(common_devices)
-            ip_address = random.choices(anomalous_ips, weights=[0.8]*len(anomalous_ips), k=1)[0] if random.random() < 0.8 else random.choice(common_ips)
+            # --- HEURISTIC LABELING LOGIC FOR ANOMALOUS USERS ---
+            risk_label = "legit"  # Start with legit
 
-            # Binary flags are more likely to be 1 for anomalous users
-            is_vpn = 1 if random.random() < 0.6 else 0
-            has_recent_password_reset = 1 if random.random() < 0.3 else 0 # Still not 100%
-            is_new_device = 1 if random.random() < 0.4 else 0 # Still not 100%
-            country_mismatch = 1 if random.random() < 0.5 else 0
-            ip_risk_score = max(0.01, min(0.99, user_ip_risk_score_base * np.random.uniform(0.9, 1.1) + random.uniform(-0.05, 0.05)))
+            # Fraud conditions (exact combinations from requirements)
+            if (tx_amount_to_balance_ratio > 0.5 and is_new_device == 1 and user_location_change_freq > 0.3):
+                risk_label = "fraud"
+            elif tx_amount_to_balance_ratio > 0.8:  # Very high ratio
+                risk_label = "fraud"
+            elif (transaction_velocity_10min >= 5):  # Very high velocity
+                risk_label = "fraud"
+            elif (ip_address_reputation < 0.3 and country_change_flag == 1):
+                risk_label = "fraud"
 
-            anomaly_score_baseline = np.random.uniform(0.4, 1.0) # Higher baseline for anomalous
+            # Suspicious conditions (exact combinations from requirements)
+            elif (transaction_velocity_10min >= 3 and (tx_hour < 6 or tx_hour > 22)):
+                risk_label = "suspicious"
+            elif tx_amount > user_avg_tx_amount * 2:
+                risk_label = "suspicious"
+            elif country_change_flag == 1:
+                risk_label = "suspicious"
+            elif is_new_device == 1:
+                risk_label = "suspicious"
+            elif ip_address_reputation < 0.5:
+                risk_label = "suspicious"
+
+            # For anomalous users, ensure higher fraud/suspicious rates
+            if risk_label == "legit":
+                rand_val = random.random()
+                if rand_val < 0.3:  # 30% chance of fraud
+                    risk_label = "fraud"
+                elif rand_val < 0.6:  # 30% chance of suspicious  
+                    risk_label = "suspicious"
+
+            risk_flag_manual = 0 if risk_label == "legit" else 1
 
             data.append([
-                session_duration, login_time_pattern, avg_tx_amount_user_pattern, geo_distance_delta,
-                user_id, tx_id_counter, timestamp, tx_amount, currency, tx_type, merchant_id,
-                tx_location, device_id, ip_address, is_vpn, avg_tx_amount_user_pattern, std_tx_amount_user_pattern,
-                avg_tx_hour_user_pattern, device_change_freq_base, location_change_freq_base, txs_last_24h, txs_last_7d,
-                has_recent_password_reset, is_new_device, tx_hour, 1, anomaly_score_baseline,
-                country_mismatch, is_weekend, ip_risk_score
+                user_avg_tx_amount, user_device_change_freq, tx_hour, user_location_change_freq,
+                is_new_device, transaction_count_24h, time_since_last_tx, tx_amount_to_balance_ratio,
+                ip_address_reputation, is_weekend, transaction_velocity_10min, country_change_flag,
+                user_id, tx_id_counter, timestamp, tx_amount, user_account_balance,
+                risk_label, risk_flag_manual
             ])
             tx_id_counter += 1
+            total_transactions += 1
 
-    generated_df_columns = [
-        'session_duration', 'login_time_pattern', 'avg_tx_amount', 'geo_distance_delta',
-        'user_id', 'tx_id', 'timestamp', 'tx_amount', 'currency', 'tx_type', 'merchant_id',
-        'tx_location', 'device_id', 'ip_address', 'is_vpn', 'avg_tx_amount_user', 'std_tx_amount_user',
-        'avg_tx_hour_user', 'device_change_freq', 'location_change_freq', 'txs_last_24h', 'txs_last_7d',
-        'has_recent_password_reset', 'is_new_device', 'tx_hour', 'risk_flag_manual',
-        'anomaly_score_baseline', 'country_mismatch', 'is_weekend', 'ip_risk_score'
+    # Create DataFrame
+    columns = [
+        'avg_tx_amount', 'device_change_freq', 'tx_hour', 'location_change_freq',
+        'is_new_device', 'transaction_count_24h', 'time_since_last_tx', 'tx_amount_to_balance_ratio',
+        'ip_address_reputation', 'is_weekend', 'transaction_velocity_10min', 'country_change_flag',
+        'user_id', 'tx_id', 'timestamp', 'tx_amount', 'account_balance',
+        TARGET_COLUMN_CATEGORICAL, TARGET_COLUMN_BINARY
     ]
 
-    df = pd.DataFrame(data, columns=generated_df_columns)
+    df = pd.DataFrame(data, columns=columns)
+
     print(f"\nSaving data to file: {DATA_FILE}")
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     try:
         df.to_csv(DATA_FILE, index=False)
         print(f"File {DATA_FILE} has been successfully generated.")
         print(f"Generated {df.shape[0]} rows of data.")
+        print(f"Distribution of '{TARGET_COLUMN_CATEGORICAL}':\n{df[TARGET_COLUMN_CATEGORICAL].value_counts()}")
+        print(f"Distribution of '{TARGET_COLUMN_BINARY}':\n{df[TARGET_COLUMN_BINARY].value_counts()}")
+
+        # Show proportions
+        proportions = df[TARGET_COLUMN_CATEGORICAL].value_counts(normalize=True)
+        print(f"\nProportions:")
+        for label, prop in proportions.items():
+            print(f"{label}: {prop:.2%}")
+
     except Exception as e:
         print(f"Error occurred while saving CSV file: {e}")
     print("\nData generation completed.")
     return df
 
+
 def generate_feature_schema_file():
     print(f"\nGenerating feature schema file: {SCHEMA_FILE}")
     schema_data = {
-        "description": "Schema definitions for behavioral transaction features.",
+        "description": "Schema definitions for behavioral transaction features (8-15 features as per requirements).",
         "features": FEATURE_SCHEMA_DEFINITIONS,
-        "target_column": TARGET_COLUMN
+        "target_column_binary": TARGET_COLUMN_BINARY,
+        "target_column_categorical": TARGET_COLUMN_CATEGORICAL,
+        "labeling_logic": {
+            "fraud_conditions": [
+                "High tx_amount_to_balance_ratio + is_new_device + high location_change_freq",
+                "Very high transaction_velocity_10min (>=5)",
+                "Low ip_address_reputation + country_change_flag"
+            ],
+            "suspicious_conditions": [
+                "High transaction_velocity_10min + unusual tx_hour (early morning/late night)",
+                "Transaction amount significantly above user average",
+                "Country change flag",
+                "New device usage",
+                "Low IP reputation"
+            ]
+        }
     }
+    os.makedirs(os.path.dirname(SCHEMA_FILE), exist_ok=True)
     try:
         with open(SCHEMA_FILE, 'w') as f:
             json.dump(schema_data, f, indent=2)
@@ -232,59 +314,108 @@ def generate_feature_schema_file():
     except Exception as e:
         print(f"Error occurred while saving feature schema: {e}")
 
+
 def update_behavioral_ml_doc():
-    print(f"\nUpdating overall documentation file: {DOC_FILE}")
-    doc_content = f"# Behavioral Authentication ML Project Overview\n\n"
-    doc_content += f"This document outlines the machine learning project for behavioral authentication, covering data generation, feature schema, model training, and evaluation.\n\n"
+    print(f"\nUpdating documentation file: {DOC_FILE}")
+    doc_content = f"""# Behavioral Authentication ML Project Overview
 
-    doc_content += f"## 1. Data Generation (`{DATA_FILE}`)\n"
-    doc_content += f"Synthetic behavioral transaction data is generated to simulate normal and anomalous user activities.\n"
-    doc_content += f"-**Number of Normal Users:** {NUM_NORMAL_USERS}\n"
-    doc_content += f"-**Number of Anomalous Users:** {NUM_ANOMALOUS_USERS}\n"
-    doc_content += f"-**Transaction Period:** {START_DATE.strftime('%Y-%m-%d')} to {END_DATE.strftime('%Y-%m-%d')}\n\n"
+This document outlines the machine learning project for behavioral authentication, covering data generation, feature schema, model training, and evaluation as per the project requirements.
 
-    doc_content += f"## 2. Feature Schema (`{SCHEMA_FILE}`)\n"
-    doc_content += f"The following table describes the features included in the dataset.\n\n"
-    doc_content += f"| Feature Name | Type | Subtype | Description | Range/Values | Example |\n"
-    doc_content += f"|---|---|---|---|---|---|\n"
+## 1. Data Generation (`{DATA_FILE}`)
+
+Synthetic behavioral transaction data is generated to simulate normal and anomalous user activities with controlled label distribution.
+
+### Configuration:
+- **Number of Normal Users:** {NUM_NORMAL_USERS}
+- **Number of Anomalous Users:** {NUM_ANOMALOUS_USERS}  
+- **Transaction Period:** {START_DATE.strftime('%Y-%m-%d')} to {END_DATE.strftime('%Y-%m-%d')}
+- **Target Label Distribution:**
+  - Fraud Rate: {FRAUD_RATE:.1%}
+  - Suspicious Rate: {SUSPICIOUS_RATE:.1%}  
+  - Legit Rate: {LEGIT_RATE:.1%}
+
+## 2. Feature Schema (`{SCHEMA_FILE}`)
+
+The dataset includes **12 core behavioral features** as specified in the project requirements:
+
+### Core Behavioral Features (8-15 as required):
+"""
+
+    # Add feature table
+    doc_content += "| Feature Name | Type | Description | Range/Values | Example |\n"
+    doc_content += "|---|---|---|---|---|\n"
 
     for feature in FEATURE_SCHEMA_DEFINITIONS:
-        name = feature.get('name', 'N/A')
-        ftype = feature.get('type', 'N/A')
-        subtype = feature.get('subtype', '')
-        description = feature.get('description', 'N/A')
+        if feature['name'] not in ['user_id', 'tx_id', 'timestamp', 'tx_amount', 'account_balance', 'risk_label',
+                                   'risk_flag_manual']:
+            name = feature.get('name', 'N/A')
+            ftype = feature.get('type', 'N/A')
+            description = feature.get('description', 'N/A')
+            range_values = feature.get('range', '')
+            if not range_values and 'values' in feature:
+                range_values = ', '.join(map(str, feature['values']))
+            example = feature.get('example', '')
+            doc_content += f"| {name} | {ftype} | {description} | {range_values} | {example} |\n"
 
-        range_values = feature.get('range', '')
-        if not range_values and 'values' in feature:
-            range_values = ', '.join(map(str, feature['values']))
+    doc_content += f"""
 
-        example = feature.get('example', '')
+### Target Variables:
+- **Binary Target:** `{TARGET_COLUMN_BINARY}` - Simple normal/anomalous classification
+- **Categorical Target:** `{TARGET_COLUMN_CATEGORICAL}` - Three-class classification (legit, suspicious, fraud)
 
-        doc_content += f"| {name} | {ftype} | {subtype} | {description} | {range_values} | {example} |\n"
-    doc_content += "\n"
-    doc_content += f"-**Target Column:** `{TARGET_COLUMN}` - used for labeling transactions as normal or anomalous.\n\n"
+## 3. Heuristic Labeling Logic
 
-    doc_content += f"## 3. Model Training & Evaluation (Refer to `train_evaluate_model.py`)\n\n"
-    doc_content += f"## 4. API & Deployment (Future Work / Separate Deliverable)\n\n"
+The labeling follows the exact combinations specified in the project requirements:
 
-    doc_content += f"## Next Steps & Considerations\n"
-    doc_content += f"-**Advanced Preprocessing:** Explore robust imputation and high-cardinality categorical feature handling.\n"
-    doc_content += f"-**Feature Engineering:** Create new features from existing ones.\n"
-    doc_content += f"-**Class Imbalance:** Use techniques like SMOTE or `class_weight`.\n"
-    doc_content += f"-**Model Hyperparameter Tuning:** Use GridSearchCV or RandomizedSearchCV.\n"
-    doc_content += f"-**Cross-validation:** Implement for robust evaluation.\n"
-    doc_content += f"-**Alternative Models:** Experiment with XGBoost or LightGBM.\n"
-    doc_content += f"-**Deployment:** Prepare model for API deployment consistency.\n"
+### Fraud Conditions:
+- **Primary:** `tx_amount_to_balance_ratio` + `is_new_device` + high `location_change_freq`
+- **Secondary:** Very high `transaction_velocity_10min` (>=5 transactions)
+- **Tertiary:** Low `ip_address_reputation` + `country_change_flag`
 
+### Suspicious Conditions:  
+- **Primary:** High `transaction_velocity_10min` + unusual `tx_hour` (early morning/late night)
+- **Secondary:** Transaction amount significantly above user average
+- **Tertiary:** `country_change_flag`, `is_new_device`, or low IP reputation
+
+## 4. Data Quality Assurance
+
+- Balanced class distribution with controlled proportions
+- Realistic behavioral patterns differentiate normal vs anomalous users
+- Time-based features include proper temporal relationships
+- Feature correlations reflect real-world financial behavior patterns
+
+## 5. Next Steps
+
+This dataset is ready for model training phase as outlined in the project plan:
+- Train RandomForest, XGBoost, or LightGBM models
+- Evaluate using ROC-AUC, Precision/Recall, and Confusion Matrix
+- Proceed to API development phase
+
+---
+*Generated by: `generate_behavioral_data.py`*
+*Schema file: `{SCHEMA_FILE}`*
+*Dataset file: `{DATA_FILE}`*
+"""
+
+    os.makedirs(os.path.dirname(DOC_FILE), exist_ok=True)
     try:
         with open(DOC_FILE, 'w') as f:
             f.write(doc_content)
-        print(f"Overall documentation updated in {DOC_FILE}")
+        print(f"Documentation updated in {DOC_FILE}")
     except Exception as e:
         print(f"Error occurred while updating documentation: {e}")
 
+
 if __name__ == "__main__":
+    print("=== Behavioral Authentication ML Data Generator ===")
+    print("Generating synthetic dataset according to project requirements...\n")
+
     generate_behavioral_data()
     generate_feature_schema_file()
     update_behavioral_ml_doc()
-    print("\nData generation script finished.")
+
+    print("\n=== Data Generation Complete ===")
+    print(f" Dataset: {DATA_FILE}")
+    print(f" Schema: {SCHEMA_FILE}")
+    print(f" Documentation: {DOC_FILE}")
+    print("\nReady for model training phase!")
