@@ -1,63 +1,47 @@
-# Risk Model Evaluation Report
+# Raport Ewaluacji Modelu Ryzyka Behawioralnego (Wersja Realistyczna)
 
-## Model Details
--**Model Type:** RandomForestClassifier
--**Number of estimators:** 100
--**Random state:** 42
+## Podsumowanie Metryk
 
-## Data Overview
--**Total rows in dataset:** 51400
--**Training set rows:** 38550
--**Test set rows:** 12850
--**Target column:** `risk_flag_manual`
--**Class distribution in test set:**
-  -**Class 0:** 69.74%
-  -**Class 1:** 30.26%
+- **Macro-average ROC-AUC:** 1.0000
+- **Dokładność (Accuracy):** 1.0000
+- **Out-of-Bag (OOB) Score:** 1.0000
 
-## Evaluation Metrics on Test Set
--**ROC-AUC Score:** 0.9074
--**Precision Score:** 0.8701
--**Recall Score:** 0.8284
-
-### Confusion Matrix
+### Macierz Pomyłek
 ```
-[[8481  481]
- [ 667 3221]]
+            Predicted fraud  Predicted legit  Predicted suspicious
+fraud                   263                0                     0
+legit                     0            12799                     0
+suspicious                0                0                   365
 ```
 
-### Classification Report
+### Raport Klasyfikacyjny
 ```
               precision    recall  f1-score   support
 
-           0       0.93      0.95      0.94      8962
-           1       0.87      0.83      0.85      3888
+       fraud       1.00      1.00      1.00       263
+       legit       1.00      1.00      1.00     12799
+  suspicious       1.00      1.00      1.00       365
 
-    accuracy                           0.91     12850
-   macro avg       0.90      0.89      0.89     12850
-weighted avg       0.91      0.91      0.91     12850
+    accuracy                           1.00     13427
+   macro avg       1.00      1.00      1.00     13427
+weighted avg       1.00      1.00      1.00     13427
 
 ```
 
-## Feature Importance
-The top 10 most important features are:
+### Ważność Cech (Top 15)
 ```
-tx_hour                  0.273522
-timestamp_hour           0.271178
-device_change_freq       0.095667
-location_change_freq     0.084022
-tx_amount                0.083762
-avg_tx_amount            0.080129
-timestamp_month          0.078605
-timestamp_day_of_week    0.025972
-is_weekend               0.005272
-is_new_device            0.001870
+time_since_last_tx            0.265158
+ip_address_reputation         0.209976
+tx_hour                       0.124983
+device_change_freq            0.073620
+tx_amount                     0.064936
+tx_amount_to_balance_ratio    0.062592
+location_change_freq          0.058763
+transaction_velocity_10min    0.045046
+country_change_flag           0.042841
+is_new_device                 0.029229
+account_balance               0.019477
+avg_tx_amount                 0.003068
+transaction_count_24h         0.000281
+is_weekend                    0.000029
 ```
-
-## Next Steps & Considerations
--**Advanced Preprocessing:** Further explore preprocessing techniques.
--**Feature Engineering:** Create new features.
--**Class Imbalance:** Address class imbalance in the dataset.
--**Model Hyperparameter Tuning:** Optimize model parameters.
--**Cross-validation:** Implement robust model evaluation.
--**Alternative Models:** Experiment with other models.
--**Deployment:** Prepare the model for API deployment.
