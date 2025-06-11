@@ -1,236 +1,297 @@
 import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+import random
+import os
+import json
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     roc_auc_score,
     precision_score,
     recall_score,
+    f1_score,
     confusion_matrix,
     classification_report,
 )
-import joblib
-import os
-import json
+from sklearn.preprocessing import label_binarize
 
-#---Global Configuration---
-DATA_FILE = 'files/synthetic_behavioral_dataset.csv'
+DATA_FILE = 'files/synthetic_behavioral_data.csv'
 MODEL_OUTPUT_FILE = 'files/risk_model.pkl'
-TARGET_COLUMN = 'risk_flag_manual'
-EVAL_REPORT_FILE = 'files/risk_model_eval.md'
 MODEL_FEATURES_FILE = 'files/model_features.json'
+EVAL_REPORT_FILE = 'files/risk_model_eval.md'
+TARGET_COLUMN = 'risk_label'
 
-#---Feature Definitions for Model Preprocessing---
-NUMERIC_FEATURES_FOR_MODEL = [
-    'session_duration',
-    'avg_tx_amount',
-    'geo_distance_delta',
-    'tx_amount',
-    'std_tx_amount_user',
-    'device_change_freq',
-    'location_change_freq',
-    'txs_last_24h',
-    'txs_last_7d',
-    'ip_risk_score',
-    'avg_tx_hour_user',
-]
+NUM_NORMAL_USERS = 1000
+NUM_ANOMALOUS_USERS = 150
+TRANSACTIONS_PER_NORMAL_USER_MEAN = 50
+TRANSACTIONS_PER_ANOMALOUS_USER_MEAN = 30
+START_DATE = datetime(2023, 1, 1)
+END_DATE = datetime(2023, 12, 31)
 
-BOOLEAN_FEATURES_FOR_MODEL = [
-    'has_recent_password_reset',
-    'is_new_device',
-    'is_weekend',
-    'country_mismatch',
-    'is_vpn'
+NUMERIC_FEATURES = [
+    'avg_tx_amount', 'device_change_freq', 'tx_hour', 'location_change_freq',
+    'transaction_count_24h', 'time_since_last_tx', 'tx_amount_to_balance_ratio',
+    'ip_address_reputation', 'transaction_velocity_10min', 'tx_amount', 'account_balance'
 ]
+BOOLEAN_FEATURES = ['is_new_device', 'is_weekend', 'country_change_flag']
 
-CATEGORICAL_FEATURES_FOR_MODEL = [
-    'currency',
-    'tx_type',
-    'merchant_id',
-    'tx_location',
-    'device_id',
-    'ip_address',
-]
 
-TIME_FEATURES_FOR_MODEL = [
-    'timestamp',
-    'login_time_pattern',
-    'tx_hour',
-]
+def generate_behavioral_data():
+
+    print("--- Starting realistic synthetic data generation ---")
+    data = []
+    user_id_counter = 1
+    tx_id_counter = 1
+
+    print(f"Generating data for {NUM_NORMAL_USERS} normal users...")
+    for _ in range(NUM_NORMAL_USERS):
+        user_id = f'user_{user_id_counter}'
+        user_id_counter += 1
+        user_avg_tx_amount = np.random.uniform(50, 800)
+        user_device_change_freq = np.random.uniform(0, 0.01)
+        user_location_change_freq = np.random.uniform(0, 0.02)
+        user_account_balance = np.random.uniform(2000, 50000)
+        num_transactions = max(5, int(np.random.normal(TRANSACTIONS_PER_NORMAL_USER_MEAN, 10)))
+        user_transactions = []
+
+        for i in range(num_transactions):
+            timestamp = START_DATE + timedelta(seconds=random.randint(0, int((END_DATE - START_DATE).total_seconds())))
+            risk_label = "legit"
+            risk_flag_manual = 0
+
+
+            tx_hour = random.randint(8, 22)
+            is_weekend = 1 if timestamp.weekday() >= 5 else 0
+            tx_amount = max(1, np.random.normal(user_avg_tx_amount, user_avg_tx_amount * 0.2))
+
+            is_new_device = 1 if random.random() < 0.005 else 0
+            country_change_flag = 1 if random.random() < 0.001 else 0
+            ip_address_reputation = np.random.uniform(0.85, 1.0)
+            time_since_last_tx = 0 if i == 0 else max(0.1, abs((timestamp - user_transactions[-1][
+                'timestamp']).total_seconds() / 3600))
+            transaction_count_24h = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 86400])
+            transaction_velocity_10min = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 600])
+            tx_amount_to_balance_ratio = min(1.0, tx_amount / user_account_balance) if user_account_balance > 0 else 0
+
+            user_transactions.append({'timestamp': timestamp})
+            data.append([
+                user_avg_tx_amount, user_device_change_freq, tx_hour, user_location_change_freq,
+                is_new_device, transaction_count_24h, time_since_last_tx, tx_amount_to_balance_ratio,
+                ip_address_reputation, is_weekend, transaction_velocity_10min, country_change_flag,
+                user_id, tx_id_counter, timestamp, tx_amount, user_account_balance, risk_label, risk_flag_manual
+            ])
+            tx_id_counter += 1
+
+    print(f"Generating data for {NUM_ANOMALOUS_USERS} anomalous users...")
+    for _ in range(NUM_ANOMALOUS_USERS):
+        user_id = f'user_{user_id_counter}'
+        user_id_counter += 1
+        user_avg_tx_amount = np.random.uniform(200, 2000)
+        user_device_change_freq = np.random.uniform(0.1, 0.5)
+        user_location_change_freq = np.random.uniform(0.1, 0.6)
+        user_account_balance = np.random.uniform(100, 10000)
+        num_transactions = max(5, int(np.random.normal(TRANSACTIONS_PER_ANOMALOUS_USER_MEAN, 8)))
+        user_transactions = []
+
+        for i in range(num_transactions):
+            timestamp = START_DATE + timedelta(seconds=random.randint(0, int((END_DATE - START_DATE).total_seconds())))
+            is_weekend = 1 if timestamp.weekday() >= 5 else 0
+
+            rand_val = random.random()
+            if rand_val < 0.25:
+                risk_label = "fraud"
+            elif rand_val < 0.60:
+                risk_label = "suspicious"
+            else:
+                risk_label = "legit"
+
+            risk_flag_manual = 0 if risk_label == "legit" else 1
+
+            if risk_label == "fraud":
+                tx_hour = random.choice([0, 1, 2, 3, 4, 5, 23])
+                tx_amount = max(1000, user_account_balance * np.random.uniform(0.7, 1.2))
+                is_new_device = 1 if random.random() < 0.9 else 0
+                country_change_flag = 1 if random.random() < 0.85 else 0
+                ip_address_reputation = np.random.uniform(0.0, 0.4)
+                time_since_last_tx = np.random.uniform(0.01, 0.05)
+                transaction_velocity_10min = random.randint(3, 8)
+
+            elif risk_label == "suspicious":
+                tx_hour = random.choice([6, 7, 22, 23])
+                tx_amount = max(1, user_avg_tx_amount * np.random.uniform(2.0, 4.5))
+                is_new_device = 1 if random.random() < 0.4 else 0
+                country_change_flag = 1 if random.random() < 0.2 else 0
+                ip_address_reputation = np.random.uniform(0.2, 0.7)
+                time_since_last_tx = np.random.uniform(0.05, 0.6)
+                transaction_velocity_10min = random.randint(2, 4)
+
+            else:  # risk_label == "legit"
+                tx_hour = random.randint(9, 20)
+                tx_amount = max(1, np.random.normal(user_avg_tx_amount, user_avg_tx_amount * 0.3))
+                is_new_device = 1 if random.random() < 0.05 else 0
+                country_change_flag = 0
+                ip_address_reputation = np.random.uniform(0.6, 1.0)
+                time_since_last_tx = 0 if i == 0 else max(0.5, abs((timestamp - user_transactions[-1][
+                    'timestamp']).total_seconds() / 3600))
+                transaction_velocity_10min = len(
+                    [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 600])
+
+            transaction_count_24h = len(
+                [t for t in user_transactions if (timestamp - t['timestamp']).total_seconds() <= 86400])
+            tx_amount_to_balance_ratio = min(1.0, tx_amount / user_account_balance) if user_account_balance > 0 else 0
+
+            user_transactions.append({'timestamp': timestamp})
+            data.append([
+                user_avg_tx_amount, user_device_change_freq, tx_hour, user_location_change_freq,
+                is_new_device, transaction_count_24h, time_since_last_tx, tx_amount_to_balance_ratio,
+                ip_address_reputation, is_weekend, transaction_velocity_10min, country_change_flag,
+                user_id, tx_id_counter, timestamp, tx_amount, user_account_balance, risk_label, risk_flag_manual
+            ])
+            tx_id_counter += 1
+
+    columns = [
+        'avg_tx_amount', 'device_change_freq', 'tx_hour', 'location_change_freq', 'is_new_device',
+        'transaction_count_24h', 'time_since_last_tx', 'tx_amount_to_balance_ratio', 'ip_address_reputation',
+        'is_weekend', 'transaction_velocity_10min', 'country_change_flag', 'user_id', 'tx_id', 'timestamp',
+        'tx_amount', 'account_balance', 'risk_label', 'risk_flag_manual'
+    ]
+    df = pd.DataFrame(data, columns=columns)
+
+    print(f"\nSaving data to file: {DATA_FILE}")
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+    df.to_csv(DATA_FILE, index=False)
+    print(f"File {DATA_FILE} successfully generated.")
+    print(f"Generated {df.shape[0]} rows of data.")
+    print(f"'{TARGET_COLUMN}' distribution:\n{df[TARGET_COLUMN].value_counts(normalize=True)}")
+    print("\n--- Data generation completed ---\n")
+
 
 def train_evaluate_model():
-    print(f"--- Starting Model Training and Evaluation ---")
+
+    print(f"--- Starting model training and evaluation ---")
     if not os.path.exists(DATA_FILE):
-        print(f"Error: Data file '{DATA_FILE}' not found. Please run 'generate_data.py' first.")
+        print(f"Error: Data file '{DATA_FILE}' not found. Please run the generator first.")
         return
 
     df = pd.read_csv(DATA_FILE)
     print("Data loaded for model training.")
-    print(f"Number of rows: {df.shape[0]}, Number of columns: {df.shape[1]}")
-    print("\nFirst 5 rows of data:")
-    print(df.head())
-    print("\nInformation about columns and data types:")
-    df.info()
 
-    if TARGET_COLUMN not in df.columns:
-        print(f"Error: Target column '{TARGET_COLUMN}' not found in the DataFrame.")
-        return
-    df.dropna(subset=[TARGET_COLUMN], inplace=True)
-
-    model_features_list = (
-            NUMERIC_FEATURES_FOR_MODEL +
-            BOOLEAN_FEATURES_FOR_MODEL +
-            CATEGORICAL_FEATURES_FOR_MODEL +
-            TIME_FEATURES_FOR_MODEL
-    )
-
-    existing_model_features = [col for col in model_features_list if col in df.columns]
-    if len(existing_model_features) != len(model_features_list):
-        missing = set(model_features_list) - set(existing_model_features)
-        print(f"Warning: Missing model feature columns: {missing}")
-
-    X = df[existing_model_features].copy()
+    model_features_list = NUMERIC_FEATURES + BOOLEAN_FEATURES
+    X = df[model_features_list].copy()
     y = df[TARGET_COLUMN].copy()
 
-    print("\nStarting data preprocessing for model training...")
-    for col in list(TIME_FEATURES_FOR_MODEL):
-        if col in X.columns:
-            if col == 'timestamp':
-                X[col] = pd.to_datetime(X[col])
-                X[f'{col}_hour'] = X[col].dt.hour
-                X[f'{col}_day_of_week'] = X[col].dt.dayofweek
-                X[f'{col}_month'] = X[col].dt.month
-                X = X.drop(columns=[col])
-                print(f"Processed time feature: {col}")
-            elif col == 'login_time_pattern':
-                time_series = pd.to_datetime(X[col].astype(str), format='%H:%M', errors='coerce')
-                X[f'{col}_hour'] = time_series.dt.hour
-                X[f'{col}_minute'] = time_series.dt.minute
-                X = X.drop(columns=[col])
-                print(f"Processed time feature: {col}")
-            elif col == 'tx_hour':
-                if X[col].dtype == 'object':
-                    X[col] = pd.to_numeric(X[col], errors='coerce')
-
-    current_categorical_features_in_X = [col for col in CATEGORICAL_FEATURES_FOR_MODEL if col in X.columns]
-    if current_categorical_features_in_X:
-        print(f"Applying One-Hot Encoding to categorical features: {current_categorical_features_in_X}")
-        X = pd.get_dummies(X, columns=current_categorical_features_in_X, drop_first=True)
-        print(f"Shape after One-Hot Encoding: {X.shape}")
+    print(f"\nFeatures used for training ({len(model_features_list)}): {model_features_list}")
 
     for col in X.columns:
-        if X[col].dtype in ['int64', 'float64'] and X[col].isnull().any():
+        if X[col].isnull().any():
             mean_val = X[col].mean()
             X[col].fillna(mean_val, inplace=True)
-            print(f"Imputed missing values in numerical column '{col}'")
+            print(f"Filled missing values in column '{col}' with mean: {mean_val:.4f}")
 
-    if X.isnull().values.any():
-        print("Warning: Missing values still exist in the preprocessed data.")
+    print("\nData preprocessing completed.")
 
-    non_numeric_cols_after_prep = X.select_dtypes(include=['object', 'category']).columns
-    if len(non_numeric_cols_after_prep) > 0:
-        print(f"Error: Non-numeric columns found after preprocessing: {non_numeric_cols_after_prep}")
-        return
-    print("Data preprocessing completed.")
+    print(f"Saving feature names to file: {MODEL_FEATURES_FILE}")
+    os.makedirs(os.path.dirname(MODEL_FEATURES_FILE), exist_ok=True)
+    with open(MODEL_FEATURES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(X.columns.tolist(), f, indent=2)
 
-    # --- NEW: Save the columns after preprocessing ---
-    print(f"Saving preprocessed feature column names to {MODEL_FEATURES_FILE}")
-    try:
-        with open(MODEL_FEATURES_FILE, 'w') as f:
-            json.dump(X.columns.tolist(), f)
-        print(f"Feature column names saved to {MODEL_FEATURES_FILE}")
-    except Exception as e:
-        print(f"Error occurred while saving feature column names: {e}")
-    # --- END NEW ---
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.25, random_state=42, stratify=y
+    )
+    print(f"Training set: {X_train.shape[0]} rows, Test set: {X_test.shape[0]} rows")
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
-    print(f"\nTraining set size: {X_train.shape[0]} rows")
-    print(f"Test set size: {X_test.shape[0]} rows")
-
-    print("\nStarting Random Forest model training...")
-    model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    print("\nStarting RandomForestClassifier model training...")
+    model = RandomForestClassifier(
+        n_estimators=150,
+        random_state=42,
+        n_jobs=-1,
+        class_weight='balanced',
+        max_depth=20,
+        min_samples_leaf=5,
+        oob_score=True
+    )
     model.fit(X_train, y_train)
-    print("Model training completed.")
+    print(f"Model training completed. OOB Score: {model.oob_score_:.4f}")
 
     print("\nEvaluating model on the test set...")
-    y_pred_proba = model.predict_proba(X_test)[:, 1]
     y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)
+    classes = model.classes_
 
-    try:
-        auc_score = roc_auc_score(y_test, y_pred_proba)
-        print(f"ROC-AUC Score on test set: {auc_score:.4f}")
-    except ValueError as e:
-        print(f"Could not calculate ROC-AUC. Error: {e}")
-        auc_score = 'N/A'
+    print("\n=== Confusion Matrix ===")
+    conf_matrix = confusion_matrix(y_test, y_pred, labels=classes)
+    print(pd.DataFrame(conf_matrix, index=classes, columns=[f'Predicted {c}' for c in classes]))
 
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    print(f"Precision Score on test set: {precision:.4f}")
-    print(f"Recall Score on test set: {recall:.4f}")
-
-    conf_matrix = confusion_matrix(y_test, y_pred)
-    print("\nConfusion Matrix:")
-    print(conf_matrix)
-
-    class_report = classification_report(y_test, y_pred)
-    print("\nClassification Report:")
+    print("\n=== Classification Report ===")
+    class_report = classification_report(y_test, y_pred, labels=classes)
     print(class_report)
 
+    roc_auc_per_class, macro_auc, _ = calculate_multiclass_roc_auc(y_test, y_pred_proba, classes)
+    print("\n=== ROC-AUC Results ===")
+    if roc_auc_per_class:
+        for class_name, auc_score in roc_auc_per_class.items():
+            if auc_score is not None:
+                print(f"  ROC-AUC for class '{class_name}': {auc_score:.4f}")
+    if macro_auc:
+        print(f"  Macro-average ROC-AUC: {macro_auc:.4f}")
+
     print(f"\nSaving trained model to file: {MODEL_OUTPUT_FILE}")
-    try:
-        joblib.dump(model, MODEL_OUTPUT_FILE)
-        print(f"Model successfully saved as {MODEL_OUTPUT_FILE}")
-    except Exception as e:
-        print(f"Error occurred while saving the model: {e}")
+    joblib.dump(model, MODEL_OUTPUT_FILE)
+    print("Model successfully saved.")
 
     print(f"\nGenerating evaluation report: {EVAL_REPORT_FILE}")
-    with open(EVAL_REPORT_FILE, 'w') as f:
-        f.write(f"# Risk Model Evaluation Report\n\n")
-        f.write(f"## Model Details\n")
-        f.write(f"-**Model Type:** RandomForestClassifier\n")
-        f.write(f"-**Number of estimators:** {model.n_estimators}\n")
-        f.write(f"-**Random state:** {model.random_state}\n\n")
-        f.write(f"## Data Overview\n")
-        f.write(f"-**Total rows in dataset:** {df.shape[0]}\n")
-        f.write(f"-**Training set rows:** {X_train.shape[0]}\n")
-        f.write(f"-**Test set rows:** {X_test.shape[0]}\n")
-        f.write(f"-**Target column:** `{TARGET_COLUMN}`\n")
-        f.write(f"-**Class distribution in test set:**\n")
-        for class_val, proportion in y_test.value_counts(normalize=True).items():
-            f.write(f"  -**Class {class_val}:** {proportion:.2%}\n")
-        f.write(f"\n")
-        f.write(f"## Evaluation Metrics on Test Set\n")
-        f.write(f"-**ROC-AUC Score:** {auc_score:.4f}\n")
-        f.write(f"-**Precision Score:** {precision:.4f}\n")
-        f.write(f"-**Recall Score:** {recall:.4f}\n\n")
-        f.write(f"### Confusion Matrix\n")
-        f.write(f"```\n")
-        f.write(f"{conf_matrix}\n")
-        f.write(f"```\n\n")
-        f.write(f"### Classification Report\n")
-        f.write(f"```\n")
-        f.write(f"{class_report}\n")
-        f.write(f"```\n\n")
-        f.write(f"## Feature Importance\n")
-        try:
+    try:
+        with open(EVAL_REPORT_FILE, 'w', encoding='utf-8') as f:
+            f.write("# Behavioral Risk Model Evaluation Report (Realistic Version)\n\n")
+            f.write("## Metrics Summary\n\n")
+            f.write(f"- **Macro-average ROC-AUC:** {macro_auc:.4f}\n")
+            f.write(f"- **Accuracy:** {model.score(X_test, y_test):.4f}\n")
+            f.write(f"- **Out-of-Bag (OOB) Score:** {model.oob_score_:.4f}\n\n")
+            f.write("### Confusion Matrix\n")
+            f.write("```\n")
+            f.write(str(pd.DataFrame(conf_matrix, index=classes, columns=[f'Predicted {c}' for c in classes])))
+            f.write("\n```\n\n")
+            f.write("### Classification Report\n")
+            f.write("```\n")
+            f.write(class_report)
+            f.write("\n```\n\n")
+            f.write("### Feature Importance (Top 15)\n")
             feature_importances = pd.Series(model.feature_importances_, index=X.columns).sort_values(ascending=False)
-            f.write(f"The top 10 most important features are:\n")
-            f.write(f"```\n")
-            f.write(f"{feature_importances.head(10).to_string()}\n")
-            f.write(f"```\n\n")
-        except Exception as e:
-            f.write(f"Could not retrieve feature importances: {e}\n\n")
+            f.write("```\n")
+            f.write(feature_importances.head(15).to_string())
+            f.write("\n```\n")
+        print("Evaluation report successfully saved.")
+    except Exception as e:
+        print(f"An error occurred while generating the report: {e}")
 
-        f.write(f"## Next Steps & Considerations\n")
-        f.write(f"-**Advanced Preprocessing:** Further explore preprocessing techniques.\n")
-        f.write(f"-**Feature Engineering:** Create new features.\n")
-        f.write(f"-**Class Imbalance:** Address class imbalance in the dataset.\n")
-        f.write(f"-**Model Hyperparameter Tuning:** Optimize model parameters.\n")
-        f.write(f"-**Cross-validation:** Implement robust model evaluation.\n")
-        f.write(f"-**Alternative Models:** Experiment with other models.\n")
-        f.write(f"-**Deployment:** Prepare the model for API deployment.\n")
+    print("\n--- Training and evaluation completed successfully ---")
 
-    print(f"Evaluation report saved to {EVAL_REPORT_FILE}")
-    print("\n--- Script finished execution ---")
+
+def calculate_multiclass_roc_auc(y_true, y_pred_proba, classes):
+    y_true_binarized = label_binarize(y_true, classes=classes)
+    if len(classes) == 2:
+        y_true_binarized = np.column_stack([1 - y_true_binarized, y_true_binarized])
+
+    roc_auc_per_class = {}
+    for i, class_name in enumerate(classes):
+        try:
+            auc_score = roc_auc_score(y_true_binarized[:, i], y_pred_proba[:, i])
+            roc_auc_per_class[class_name] = auc_score
+        except ValueError:
+            roc_auc_per_class[class_name] = None
+
+    valid_aucs = [auc for auc in roc_auc_per_class.values() if auc is not None]
+    macro_auc = np.mean(valid_aucs) if valid_aucs else None
+    return roc_auc_per_class, macro_auc, macro_auc
+
 
 if __name__ == "__main__":
+    generate_behavioral_data()
     train_evaluate_model()
+
+    print("\n=== Whole process completed successfully! ===")
+    print(f"Check the results in the report file: {EVAL_REPORT_FILE}")

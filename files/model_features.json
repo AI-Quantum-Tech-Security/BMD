@@ -1,1 +1,16 @@
-["avg_tx_amount", "tx_amount", "device_change_freq", "location_change_freq", "is_new_device", "is_weekend", "tx_hour", "timestamp_hour", "timestamp_day_of_week", "timestamp_month"]
+[
+  "avg_tx_amount",
+  "device_change_freq",
+  "tx_hour",
+  "location_change_freq",
+  "transaction_count_24h",
+  "time_since_last_tx",
+  "tx_amount_to_balance_ratio",
+  "ip_address_reputation",
+  "transaction_velocity_10min",
+  "tx_amount",
+  "account_balance",
+  "is_new_device",
+  "is_weekend",
+  "country_change_flag"
+]
