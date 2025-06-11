@@ -9,7 +9,6 @@ Synthetic behavioral transaction data is generated to simulate normal and anomal
 ### Configuration:
 - **Number of Normal Users:** 1000
 - **Number of Anomalous Users:** 100
-- **Transaction Period:** 2023-01-01 to 2023-12-31
 - **Target Label Distribution:**
   - Fraud Rate: 5.0%
   - Suspicious Rate: 15.0%
