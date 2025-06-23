@@ -1,59 +1,60 @@
-# Strategia Automatyzacji Ponownego Treningu, Monitorowania Wydajności i Detekcji Spadku Jakości Modelu
+# Strategy for Automating Retraining, Monitoring Performance and Detecting Model Quality Degradation
 
-Niniejszy dokument opisuje strategię automatyzacji procesu ponownego treningu modelu ML, monitorowania jego wydajności oraz wykrywania spadku jakości wynikającego ze zmiany danych (drift).
+This document describes a strategy for automating the process of retraining an ML model, monitoring its performance, and detecting quality degradation resulting from data change (drift).
 
-## 1. Automatyzacja Ponownego Treningu
+## 1. Automating Retraining
 
-- **Wyzwalacze Retrainingu:**
-  - Wykrycie zmiany w charakterystyce danych wejściowych (drift danych).
-  - Spadek metryk wydajności (np. ROC-AUC, precision, recall) poniżej ustalonych progów.
-  - Regularny harmonogram (np. retraining co tydzień lub co miesiąc).
+- **Retraining Triggers:**
+  - Detecting a change in the characteristics of the input data (data drift).
+  - Performance metrics (e.g. ROC-AUC, precision, recall) falling below established thresholds.
+  - Regular schedule (e.g. weekly or monthly retraining).
   
-- **Pipeline Retrainingu:**
-  - Wykorzystanie narzędzi ETL oraz orkiestratorów zadań, takich jak Apache Airflow, do zarządzania procesem ekstrakcji, transformacji i ładowania danych w celu przygotowania zbioru treningowego.
-  - Uruchomienie zadań retrainingowych na dedykowanym środowisku staging w celu weryfikacji wyników nowego modelu przed wdrożeniem.
-  
-- **Porównanie Modeli:**
-  - Automatyczne porównanie nowego modelu z modelem aktualnie działającym
-    - Porównanie kluczowych metryk (ROC-AUC, F1 Score, precision, recall).
-    - Wdrożenie mechanizmu rollback – jeśli nowy model nie spełnia oczekiwań, automatyczne wycofanie zmian.
+- **Retraining Pipeline:**
+  - Using ETL tools and task orchestrators such as Apache Airflow to manage the data extraction, transformation, and loading process to prepare the training set.
+  - Running retraining tasks on a dedicated staging environment to verify the results of the new model before deployment.
 
-## 2. Monitorowanie Wydajności Modelu
+ - **Model Comparison:**
+- Automatic comparison of the new model with the currently running model
+- Comparison of key metrics (ROC-AUC, F1 Score, precision, recall).
+- Implementation of the rollback mechanism - if the new model does not meet expectations, automatic rollback of changes.
 
-- **Zbieranie Metryk:**
-  - Monitorowanie kluczowych wskaźników działania modelu, takich jak:
-    - ROC-AUC, precision, recall, F1 Score.
-    - Średni czas predykcji i liczba błędnych predykcji.
-    
-- **Dashboard i Alerty:**
-  - Wyświetlanie metryk na dashboardzie (np. przy użyciu Grafana).
-  - Konfiguracja alertów w systemach monitorowania (np. Prometheus), które powiadomią zespół w przypadku wykrycia spadku jakości modelu.
-  
-- **Zbieranie Logów:**
-  - Agregacja logów systemowych, wejściowych i wyjściowych przez narzędzia typu ELK Stack w celu analizy nieprawidłowości.
+## 2. Monitoring Model Performance
 
-## 3. Detekcja Spadku Jakości (Drift Detection)
+- **Metric Collection:**
+- Monitoring key model performance indicators such as:
+- ROC-AUC, precision, recall, F1 Score.
+- Average prediction time and number of incorrect predictions.
 
-- **Analiza Driftu Danych:**
-  - Porównanie rozkładów danych bieżących z danymi referencyjnymi (np. korzystając z testu Kolmogorova-Smirnova lub metryki PSI).
-  
-- **Testy Weryfikacyjne:**
-  - Okresowe uruchamianie zbioru testów walidacyjnych, aby określić, czy nastąpiła zmiana w dystrybucji danych.
-  
-- **Automatyczne Raportowanie:**
-  - Generowanie raportów dotyczących driftu, które wskazują na konieczność ponownego treningu modelu.
+- **Dashboard and Alerts:**
+- Displaying metrics on a dashboard (e.g. using Grafana).
+- Configuring alerts in monitoring systems (e.g. Prometheus) that will notify the team when a drop in model quality is detected.
 
-## 4. Integracja z CI/CD
+- **Log Collection:**
+- Aggregating system, input and output logs by tools such as ELK Stack to analyze irregularities.
 
-- **Automatyczne Pipeline Retrainingu i Deploy:**
-  - Integracja ze środowiskami CI/CD (np. GitHub Actions, Jenkins) umożliwiająca:
-    - Automatyczne uruchomienie pipeline'u retrainingowego po wykryciu zmiany danych lub na podstawie harmonogramu.
-    - Budowanie i wdrażanie nowego modelu do środowiska produkcyjnego.
-  
-- **Mechanizm Rollback:**
-  - Wdrożenie strategii rollback w przypadku, gdy nowy model wykazuje gorsze wyniki w porównaniu do poprzedniej wersji.
+## 3. Drift Detection
 
-## Przykładowy Kod w Python – Detekcja Driftu
+- **Data Drift Analysis:**
+- Compares live data distributions to reference data (e.g. using the Kolmogorov-Smirnov test or PSI metric).
+
+- **Validation Tests:**
+- Periodically runs a set of validation tests to determine if there has been a change in the data distribution.
+
+- **Automatic Reporting:**
+- Generates drift reports that indicate the need to retrain the model.
+
+## 4. Integration with CI/CD
+
+- **Automatic Retraining and Deploy Pipelines:**
+- Integration with CI/CD environments (e.g. GitHub Actions, Jenkins) enabling:
+- Automatically triggers a retraining pipeline when a data change is detected or based on a schedule.
+
+- Builds and deploys a new model to production.
+
+- **Rollback Mechanism:**
+- Implementation of the rollback strategy in case the new model shows worse results compared to the previous version.
+
+## Python Code Example - Drift Detection
 
 ```python
 import numpy as np
@@ -61,29 +62,29 @@ from scipy.stats import ks_2samp
 
 def detect_drift(reference_data, current_data, alpha=0.05):
     """
-    Funkcja porównuje dystrybucję danych referencyjnych z danymi bieżącymi przy pomocy testu KS.
-    Zwraca informację, czy wykryto drift, wartość statystyki oraz p-value.
+    The function compares the distribution of the reference data with the current data using the KS test.
+    Returns whether drift was detected, the value of the statistic, and the p-value.
     """
     stat, p_value = ks_2samp(reference_data, current_data)
     drift_detected = p_value < alpha
     return drift_detected, stat, p_value
 
-# Przykładowe dane referencyjne i bieżące
+# Sample Reference and Current Data
 reference_data = np.random.normal(loc=0.0, scale=1.0, size=1000)
 current_data = np.random.normal(loc=0.1, scale=1.1, size=1000)
 
 drift, stat, p_value = detect_drift(reference_data, current_data)
 if drift:
-    print("Drift wykryty: p-value =", p_value)
+    print("Drift detected: p-value =", p_value)
 else:
-    print("Brak driftu: p-value =", p_value)
+    print("Drift detected: p-value =", p_value)
 ```
 
-## Podsumowanie
+## Summary
 
-Implementacja strategii automatyzacji pozwoli na:
-- Szybkie reagowanie na zmiany w danych dzięki monitorowaniu metryk modelu.
-- Automatyczne uruchomienie retrainingu i wdrożenie ulepszonego modelu, gdy tylko zostaną wykryte odchylenia w jakości.
-- Minimalizację ryzyka związanego z degradacją modelu poprzez systematyczne porównanie nowego modelu z wersją produkcyjną oraz zastosowanie mechanizmów rollback.
+Implementing an automation strategy will allow you to:
+- Quickly respond to changes in data by monitoring model metrics.
+- Automatically trigger retraining and implement an improved model as soon as quality deviations are detected.
+- Minimize the risk of model degradation by systematically comparing the new model with the production version and using rollback mechanisms.
 
-Taka strategia zapewnia stabilne i bezpieczne działanie systemu w dynamicznie zmieniającym się środowisku produkcyjnym.
+Such a strategy ensures stable and safe operation of the system in a dynamically changing production environment.
