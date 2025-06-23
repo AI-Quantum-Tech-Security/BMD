@@ -1,17 +1,18 @@
-# Zaawansowany Pipeline Produkcyjny
+# Advanced Production Pipeline
 
-Ten dokument opisuje dodatkowe kroki związane z integracją produkcyjną, wdrożeniem modelu ML i utrzymaniem systemu na żywo.
+This document describes additional steps related to production integration, ML model deployment and live system maintenance.
 
-## 1. Integracja z Realnymi Danymi
+## 1. Integration with Real Data
 
-- **Źródła Danych:** 
-  - Bazy danych transakcyjnych, logi serwera, systemy monitorujące.
-  - API firmowych systemów finansowych.
-- **Proces ETL (Extract, Transform, Load):**
-  - Ekstrakcja danych z różnych źródeł.
-  - Transformacja danych przy użyciu narzędzi np. Apache Airflow lub Apache NiFi.
-  - Ładowanie przetworzonych danych do hurtowni danych (np. BigQuery, Redshift) lub do bezpośredniego wykorzystania przez model.
-- **Przykładowy DAG w Apache Airflow:**
+- **Data Sources:**
+- Transactional databases, server logs, monitoring systems.
+- APIs of corporate financial systems.
+- **ETL Process (Extract, Transform, Load):**
+- Extracting data from various sources.
+- Transforming data using tools such as Apache Airflow or Apache NiFi.
+- Loading processed data into data warehouses (such as BigQuery, Redshift) or for direct use by the model.
+- **Example DAG in Apache Airflow:**
+
 ```python
 # from airflow import DAG
 # from airflow.operators.bash import BashOperator
@@ -39,16 +40,16 @@ Ten dokument opisuje dodatkowe kroki związane z integracją produkcyjną, wdro�
 #     
 #     extract >> transform >> load
 ```
-- **Monitorowanie Jakości Danych:** 
-  - Integracja z narzędziami takimi jak Great Expectations pozwala na weryfikację jakości danych przed ich załadowaniem.
+- **Data Quality Monitoring:**
+- Integration with tools like Great Expectations allows you to verify the quality of your data before loading it.
 
-## 2. Wdrożenie Modelu w Środowisku Produkcyjnym
+## 2. Deploying the Model to Production
 
-- **Konteneryzacja i Docker:**
-  - Model oraz API są pakowane w obrazy Docker, co ułatwia przenoszenie między środowiskami.
-- **Przykładowy Dockerfile:**
+- **Containerization and Docker:**
+- The model and API are packaged into Docker images, making it easy to move between environments.
+- **Sample Dockerfile:**
 ```dockerfile
-# Przykładowy Dockerfile dla ml_risk_api
+# Sample Dockerfile for ml_risk_api
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -61,9 +62,9 @@ COPY . .
 EXPOSE 5000
 CMD ["uvicorn", "final_risk_api:app", "--host", "0.0.0.0", "--port", "5000"]
 ```
-- **Orkiestracja z Kubernetes:**
-  - Wdrożenie aplikacji w klastrze Kubernetes dla zapewnienia wysokiej dostępności i skalowalności.
-- **Przykładowy plik deployment.yaml:**
+- **Kubernetes Orchestration:**
+- Deploying an application to a Kubernetes cluster for high availability and scalability.
+- **Sample deployment.yaml file:**
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -85,26 +86,26 @@ spec:
         ports:
         - containerPort: 5000
 ```
-- **Skalowanie Automatyczne:**
-  - Użycie Horizontal Pod Autoscaler (HPA) w Kubernetes pomaga w automatycznym skalowaniu aplikacji w zależności od obciążenia.
+- **Automatic Scaling:**
+- Using Horizontal Pod Autoscaler (HPA) in Kubernetes helps in automatic scaling of the application depending on the load.
 
-## 3. Monitorowanie i Utrzymanie Pipeline’u
+## 3. Monitoring and Maintaining the Pipeline
 
-- **Logowanie i Monitorowanie:**
-  - Zbiór logów z wykorzystaniem ELK Stack (Elasticsearch, Logstash, Kibana) lub alternatywnie Prometheus & Grafana.
-  - Monitorowanie przepływu danych i jakości prognoz modelu.
-- **Automatyczny Retraining:**
-  - Wdrożenie mechanizmu retrainingu, który wywoływany jest automatycznie, gdy następuje drift danych lub spadek wydajności modelu.
-  - Testowanie modelu w środowisku staging przed przeprowadzeniem _rolloutu_ do produkcji.
+- **Logging and Monitoring:**
+- Collection of logs using ELK Stack (Elasticsearch, Logstash, Kibana) or alternatively Prometheus & Grafana.
+- Monitoring of data flow and quality of model predictions.
+- **Automatic Retraining:**
+- Implementation of retraining mechanism which is called automatically when data drift or model performance drops.
+- Testing the model in staging environment before rolling out to production.
 
-## 4. CI/CD dla Pipeline’u Produkcyjnego
+## 4. CI/CD for Production Pipeline
 
-- **Automatyzacja Testowania, Budowania i Wdrażania:**
-  - Użycie narzędzi CI/CD (np. GitHub Actions, Jenkins, GitLab CI) do:
-    - Testowania commitów i integracji nowych funkcjonalności.
-    - Budowania obrazów Docker.
-    - Wdrażania aplikacji na środowisko staging lub produkcyjne.
-- **Przykładowy workflow GitHub Actions:**
+- **Test, Build, and Deploy Automation:**
+- Using CI/CD tools (e.g. GitHub Actions, Jenkins, GitLab CI) to:
+- Test commits and integrate new features.
+- Build Docker images.
+- Deploy applications to staging or production environments.
+- **Sample GitHub Actions workflow:**
 ```yaml
 name: CI/CD Pipeline
 
