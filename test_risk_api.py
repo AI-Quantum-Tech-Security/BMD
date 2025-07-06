@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 from risk_api import app
 import pandas as pd

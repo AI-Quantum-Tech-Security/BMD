@@ -1,0 +1,12 @@
+2025-06-29 17:56:36,006 - INFO - Starting comprehensive behavioral data generation
+2025-06-29 17:56:36,006 - INFO - Generating data for 1000 normal users
+2025-06-29 17:56:41,133 - INFO - Generating data for 100 anomalous users
+2025-06-29 17:56:41,575 - INFO - Generated 51255 total transactions
+2025-06-29 17:56:41,608 - INFO - Class balance:
+risk_label
+suspicious    0.658394
+legit         0.327773
+fraud         0.013833
+Name: proportion, dtype: float64
+2025-06-29 17:56:42,386 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
+2025-06-29 17:56:42,413 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
