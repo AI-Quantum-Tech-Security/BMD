@@ -8,17 +8,14 @@ import uuid
 import logging
 from typing import Dict, List, Tuple, Any
 from dataclasses import dataclass
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Configure logging
-os.makedirs('files/logs', exist_ok=True)  # Create logs directory if it doesn't exist
+os.makedirs('files/logs', exist_ok=True)  # Create logs directory
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('files/logs/data_generation.log'),  # Changed path
+        logging.FileHandler('files/logs/data_generation.log'),
         logging.StreamHandler()
     ]
 )
@@ -27,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DataGenerationConfig:
-    """Configuration class for data generation parameters"""
+    """Configuration class for data generation parameters with validation"""
     # File paths
     data_file: str = 'files/synthetic_behavioral_dataset.csv'
     schema_file: str = 'files/json/feature_schema.json'
@@ -59,15 +56,60 @@ class DataGenerationConfig:
     max_session_duration: int = 60
     location_radius: float = 100.0  # km
 
+    def __post_init__(self) -> None:
+        """Validate configuration parameters after initialization"""
+        self._validate_config()
+
+    def _validate_config(self) -> None:
+        """Validate configuration parameters"""
+        if self.num_normal_users <= 0:
+            raise ValueError("num_normal_users must be positive")
+        if self.num_anomalous_users <= 0:
+            raise ValueError("num_anomalous_users must be positive")
+        if self.transactions_per_normal_user_mean <= 0:
+            raise ValueError("transactions_per_normal_user_mean must be positive")
+        if self.transactions_per_anomalous_user_mean <= 0:
+            raise ValueError("transactions_per_anomalous_user_mean must be positive")
+        if self.start_date >= self.end_date:
+            raise ValueError("start_date must be before end_date")
+
+        # Validate rate percentages sum to 1.0
+        total_rate = self.fraud_rate + self.suspicious_rate + self.legit_rate
+        # Allow small floating point errors
+        if not (0.99 <= total_rate <= 1.01):
+            raise ValueError(f"Label rates must sum to 1.0, got {total_rate}")
+
+        rates = [self.fraud_rate, self.suspicious_rate, self.legit_rate]
+        if not all(0 <= rate <= 1 for rate in rates):
+            raise ValueError("All rates must be between 0 and 1")
+
+        if self.min_typing_speed >= self.max_typing_speed:
+            raise ValueError("min_typing_speed must be less than max_typing_speed")
+        if self.min_session_duration >= self.max_session_duration:
+            raise ValueError("min_session_duration must be less than max_session_duration")
+        if self.location_radius <= 0:
+            raise ValueError("location_radius must be positive")
+
 
 class BehavioralDataGenerator:
-    """Enhanced behavioral authentication data generator with comprehensive features"""
+    """Enhanced behavioral authentication data generator with comprehensive
+    features"""
 
-    def __init__(self, config: DataGenerationConfig):
+    def __init__(self, config: DataGenerationConfig) -> None:
+        """Initialize the data generator with configuration validation
+
+        Args:
+            config: Configuration object for data generation parameters
+
+        Raises:
+            ValueError: If configuration parameters are invalid
+        """
         self.config = config
         self.feature_schema = self._define_feature_schema()
-        self.user_profiles = {}
-        self.transaction_history = {}
+        self.user_profiles: Dict[str, Dict[str, Any]] = {}
+        self.transaction_history: Dict[str, List[Dict[str, Any]]] = {}
+
+        logger.info("BehavioralDataGenerator initialized successfully")
 
     def _define_feature_schema(self) -> List[Dict[str, Any]]:
         """Define comprehensive feature schema for behavioral authentication"""
@@ -173,7 +215,15 @@ class BehavioralDataGenerator:
         ]
 
     def _create_user_profile(self, user_id: str, is_anomalous: bool = False) -> Dict[str, Any]:
-        """Create enhanced user behavioral profile with more realistic patterns"""
+        """Create enhanced user behavioral profile with more realistic patterns
+
+        Args:
+            user_id: Unique identifier for the user
+            is_anomalous: Whether this user exhibits anomalous behavior
+
+        Returns:
+            Dictionary containing user profile data
+        """
         # Base profile with common attributes
         profile = {
             'user_id': user_id,
@@ -224,8 +274,15 @@ class BehavioralDataGenerator:
         self.transaction_history[user_id] = []
         return profile
 
-    def _generate_typical_locations(self, is_anomalous: bool) -> List[Dict]:
-        """Generate realistic location patterns"""
+    def _generate_typical_locations(self, is_anomalous: bool) -> List[Dict[str, Any]]:
+        """Generate realistic location patterns
+
+        Args:
+            is_anomalous: Whether to generate anomalous location patterns
+
+        Returns:
+            List of location dictionaries
+        """
         num_locations = np.random.randint(1, 3) if not is_anomalous else np.random.randint(3, 8)
         locations = []
         for _ in range(num_locations):
@@ -237,8 +294,15 @@ class BehavioralDataGenerator:
             })
         return locations
 
-    def _generate_device_profiles(self, is_anomalous: bool) -> List[Dict]:
-        """Generate realistic device usage patterns"""
+    def _generate_device_profiles(self, is_anomalous: bool) -> List[Dict[str, Any]]:
+        """Generate realistic device usage patterns
+
+        Args:
+            is_anomalous: Whether to generate anomalous device patterns
+
+        Returns:
+            List of device profile dictionaries
+        """
         num_devices = np.random.randint(1, 3) if not is_anomalous else np.random.randint(3, 6)
         devices = []
         for _ in range(num_devices):
@@ -250,8 +314,15 @@ class BehavioralDataGenerator:
             })
         return devices
 
-    def _generate_session_patterns(self, is_anomalous: bool) -> Dict:
-        """Generate realistic session behavior patterns"""
+    def _generate_session_patterns(self, is_anomalous: bool) -> Dict[str, Any]:
+        """Generate realistic session behavior patterns
+
+        Args:
+            is_anomalous: Whether to generate anomalous session patterns
+
+        Returns:
+            Dictionary containing session pattern data
+        """
         return {
             'avg_session_duration': np.random.uniform(5, 30) if not is_anomalous else np.random.uniform(2, 15),
             'typing_speed_range': (
@@ -265,24 +336,37 @@ class BehavioralDataGenerator:
             }
         }
 
-    def _calculate_behavioral_features(self, user_profile: Dict, transaction_data: Dict,
-                                       user_history: List[Dict]) -> Dict[str, Any]:
-        """Calculate enhanced behavioral features"""
+    def _calculate_behavioral_features(self, user_profile: Dict[str, Any],
+                                       transaction_data: Dict[str, Any],
+                                       user_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Calculate enhanced behavioral features
+
+        Args:
+            user_profile: User profile data
+            transaction_data: Current transaction data
+            user_history: Historical transaction data for the user
+
+        Returns:
+            Dictionary of calculated behavioral features
+        """
         features = {}
 
         # Time-based features
         hour = transaction_data['timestamp'].hour
         is_preferred_hour = hour in user_profile['preferred_hours']
-        is_weekend = transaction_data['timestamp'].weekday() >= 5
 
         # Transaction amount features
         if user_history:
             amounts = [tx['tx_amount'] for tx in user_history]
-            features['tx_amount_zscore'] = (transaction_data['tx_amount'] - np.mean(amounts)) / (np.std(amounts) + 1e-8)
+            mean_amount = np.mean(amounts)
+            std_amount = np.std(amounts) + 1e-8
+            features['tx_amount_zscore'] = (
+                (transaction_data['tx_amount'] - mean_amount) / std_amount
+            )
             features['tx_amount_percentile'] = (
-                                                       sum(1 for amt in amounts if
-                                                           amt <= transaction_data['tx_amount']) / len(amounts)
-                                               ) * 100
+                sum(1 for amt in amounts if amt <= transaction_data['tx_amount'])
+                / len(amounts)
+            ) * 100
         else:
             features['tx_amount_zscore'] = 0
             features['tx_amount_percentile'] = 50
@@ -378,56 +462,119 @@ class BehavioralDataGenerator:
             return "legit", 0
 
     def generate_comprehensive_dataset(self) -> pd.DataFrame:
-        """Generate comprehensive behavioral authentication dataset"""
+        """Generate comprehensive behavioral authentication dataset with progress tracking"""
         logger.info("Starting comprehensive behavioral data generation")
+        logger.info(f"Target: {self.config.num_normal_users} normal users, "
+                   f"{self.config.num_anomalous_users} anomalous users")
 
-        data = []
+        data: List[Dict[str, Any]] = []
         tx_id_counter = 1
+        total_users = self.config.num_normal_users + self.config.num_anomalous_users
 
-        # Generate normal users
-        logger.info(f"Generating data for {self.config.num_normal_users} normal users")
-        for i in range(self.config.num_normal_users):
-            user_id = f'user_{i + 1:06d}'
-            user_profile = self._create_user_profile(user_id, is_anomalous=False)
+        try:
+            # Generate normal users
+            logger.info(f"Generating data for {self.config.num_normal_users} normal users")
+            for i in range(self.config.num_normal_users):
+                if i > 0 and i % 100 == 0:  # Progress indicator
+                    progress = (i / total_users) * 100
+                    logger.info(f"Progress: {progress:.1f}% ({i}/{total_users} users)")
 
-            num_transactions = max(1, int(np.random.normal(
-                self.config.transactions_per_normal_user_mean,
-                self.config.transactions_per_normal_user_mean * 0.2
-            )))
+                user_id = f'user_{i + 1:06d}'
+                user_profile = self._create_user_profile(user_id, is_anomalous=False)
 
-            self._generate_user_transactions(user_profile, num_transactions, tx_id_counter, data)
-            tx_id_counter += num_transactions
+                num_transactions = max(1, int(np.random.normal(
+                    self.config.transactions_per_normal_user_mean,
+                    self.config.transactions_per_normal_user_mean * 0.2
+                )))
 
-        # Generate anomalous users
-        logger.info(f"Generating data for {self.config.num_anomalous_users} anomalous users")
-        for i in range(self.config.num_anomalous_users):
-            user_id = f'anom_user_{i + 1:06d}'
-            user_profile = self._create_user_profile(user_id, is_anomalous=True)
+                self._generate_user_transactions(user_profile, num_transactions, tx_id_counter, data)
+                tx_id_counter += num_transactions
 
-            num_transactions = max(1, int(np.random.normal(
-                self.config.transactions_per_anomalous_user_mean,
-                self.config.transactions_per_anomalous_user_mean * 0.3
-            )))
+            # Generate anomalous users
+            logger.info(f"Generating data for {self.config.num_anomalous_users} anomalous users")
+            for i in range(self.config.num_anomalous_users):
+                if i > 0 and i % 50 == 0:  # Progress indicator
+                    progress = ((self.config.num_normal_users + i) / total_users) * 100
+                    logger.info(f"Progress: {progress:.1f}% ({self.config.num_normal_users + i}/{total_users} users)")
 
-            self._generate_user_transactions(user_profile, num_transactions, tx_id_counter, data)
-            tx_id_counter += num_transactions
+                user_id = f'anom_user_{i + 1:06d}'
+                user_profile = self._create_user_profile(user_id, is_anomalous=True)
 
-        # Create DataFrame
-        df = pd.DataFrame(data)
-        logger.info(f"Generated {len(df)} total transactions")
+                num_transactions = max(1, int(np.random.normal(
+                    self.config.transactions_per_anomalous_user_mean,
+                    self.config.transactions_per_anomalous_user_mean * 0.3
+                )))
+
+                self._generate_user_transactions(user_profile, num_transactions, tx_id_counter, data)
+                tx_id_counter += num_transactions
+
+            # Create DataFrame with memory optimization
+            logger.info("Converting to DataFrame...")
+            df = pd.DataFrame(data)
+
+            # Optimize memory usage
+            df = self._optimize_dataframe_memory(df)
+
+            logger.info(f"Generated {len(df)} total transactions from {total_users} users")
+            logger.info(f"Memory usage: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB")
+
+            return df
+
+        except Exception as e:
+            logger.error(f"Error during dataset generation: {e}")
+            raise
+
+    def _optimize_dataframe_memory(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Optimize DataFrame memory usage by converting data types
+
+        Args:
+            df: Input DataFrame
+
+        Returns:
+            Memory-optimized DataFrame
+        """
+        logger.info("Optimizing DataFrame memory usage...")
+
+        # Convert boolean columns to bool type
+        bool_cols = ['is_new_device', 'country_change_flag', 'is_weekend',
+                     'is_holiday', 'vpn_proxy_flag', 'risk_flag_manual']
+        for col in bool_cols:
+            if col in df.columns:
+                df[col] = df[col].astype('bool')
+
+        # Convert integer columns to appropriate int types
+        int_cols = ['tx_id', 'tx_hour', 'transaction_count_24h',
+                   'transaction_velocity_10min', 'account_age_days']
+        for col in int_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], downcast='integer')
+
+        # Convert float columns to float32 where appropriate
+        float_cols = [col for col in df.select_dtypes(include=['float64']).columns
+                     if col not in ['timestamp']]
+        for col in float_cols:
+            df[col] = pd.to_numeric(df[col], downcast='float')
+
+        # Convert categorical columns
+        categorical_cols = ['risk_label', 'user_id']
+        for col in categorical_cols:
+            if col in df.columns:
+                df[col] = df[col].astype('category')
 
         return df
 
-    def _generate_user_transactions(self, user_profile: Dict, num_transactions: int,
-                                    start_tx_id: int, data: List[Dict]) -> None:
+    def _generate_user_transactions(self, user_profile: Dict[str, Any],
+                                    num_transactions: int, start_tx_id: int,
+                                    data: List[Dict[str, Any]]) -> None:
         """Generate transactions for a specific user"""
         for j in range(num_transactions):
             transaction_data = self._generate_single_transaction(
                 user_profile, start_tx_id + j, j == 0
             )
 
+            user_id = user_profile['user_id']
             behavioral_features = self._calculate_behavioral_features(
-                user_profile, transaction_data, self.transaction_history[user_profile['user_id']]
+                user_profile, transaction_data, self.transaction_history[user_id]
             )
 
             # Combine features
@@ -437,7 +584,13 @@ class BehavioralDataGenerator:
             risk_label, risk_flag = self._apply_advanced_labeling_logic(combined_features)
 
             # Increase anomaly rate for anomalous users
-            if user_profile['is_anomalous'] and risk_label == "legit" and np.random.random() < 0.4:
+            is_anomalous_user = user_profile['is_anomalous']
+            should_force_anomaly = (
+                is_anomalous_user and
+                risk_label == "legit" and
+                np.random.random() < 0.4
+            )
+            if should_force_anomaly:
                 risk_label = "suspicious" if np.random.random() < 0.7 else "fraud"
                 risk_flag = 1
 
@@ -445,57 +598,96 @@ class BehavioralDataGenerator:
             combined_features['risk_flag_manual'] = risk_flag
 
             data.append(combined_features)
-            self.transaction_history[user_profile['user_id']].append(transaction_data)
+            self.transaction_history[user_id].append(transaction_data)
 
-    def _generate_single_transaction(self, user_profile: Dict, tx_id: int, is_first: bool) -> Dict[str, Any]:
-        """Generate a single transaction with enhanced realistic features"""
+    def _generate_single_transaction(self, user_profile: Dict[str, Any],
+                                    tx_id: int, is_first: bool) -> Dict[str, Any]:
+        """Generate a single transaction with enhanced realistic features
+
+        Args:
+            user_profile: User profile data
+            tx_id: Transaction ID
+            is_first: Whether this is the user's first transaction
+
+        Returns:
+            Dictionary containing transaction data
+        """
         # Generate timestamp with temporal patterns
         timestamp = self._generate_realistic_timestamp(user_profile)
 
         # Basic transaction features
         tx_amount = self._generate_transaction_amount(user_profile, timestamp)
 
+        # Calculate derived values
+        device_change_prob = user_profile['device_change_freq']
+        is_anomalous = user_profile['is_anomalous']
+        country_change_prob = 0.4 if is_anomalous else 0.01
+        account_balance = user_profile['account_balance']
+
         transaction = {
             'user_id': user_profile['user_id'],
             'tx_id': tx_id,
             'timestamp': timestamp,
             'tx_amount': tx_amount,
-            'account_balance': user_profile['account_balance'],
+            'account_balance': account_balance,
             'tx_hour': timestamp.hour,
             'is_weekend': 1 if timestamp.weekday() >= 5 else 0,
             'is_holiday': 1 if self._is_holiday(timestamp) else 0,
-            'is_new_device': 1 if np.random.random() < user_profile['device_change_freq'] else 0,
-            'country_change_flag': 1 if np.random.random() < (
-                0.4 if user_profile['is_anomalous'] else 0.01) else 0,
-            'tx_amount_to_balance_ratio': min(1.0, tx_amount / user_profile['account_balance'])
+            'is_new_device': 1 if np.random.random() < device_change_prob else 0,
+            'country_change_flag': 1 if np.random.random() < country_change_prob else 0,
+            'tx_amount_to_balance_ratio': min(1.0, tx_amount / account_balance)
         }
 
         return transaction
 
-    def _generate_realistic_timestamp(self, user_profile: Dict) -> datetime:
-        """Generate timestamp based on user's temporal patterns"""
+    def _generate_realistic_timestamp(
+            self, user_profile: Dict[str, Any]) -> datetime:
+        """Generate timestamp based on user's temporal patterns
+
+        Args:
+            user_profile: User profile data
+
+        Returns:
+            Generated timestamp
+        """
         while True:
-            timestamp = self.config.start_date + timedelta(
-                seconds=random.randint(
-                    0,
-                    int((self.config.end_date - self.config.start_date).total_seconds())
-                )
+            start_date = self.config.start_date
+            end_date = self.config.end_date
+            total_seconds = int((end_date - start_date).total_seconds())
+
+            timestamp = start_date + timedelta(
+                seconds=random.randint(0, total_seconds)
             )
 
             hour = timestamp.hour
             is_weekend = timestamp.weekday() >= 5
 
             # Check if timestamp matches user's patterns
-            if hour in user_profile['preferred_hours']:
+            preferred_hours = user_profile['preferred_hours']
+            weekend_factor = user_profile['weekend_activity_factor']
+
+            if hour in preferred_hours:
                 return timestamp
-            elif is_weekend and np.random.random() < user_profile['weekend_activity_factor']:
+            elif is_weekend and np.random.random() < weekend_factor:
                 return timestamp
-            elif np.random.random() < 0.2:  # Allow some transactions outside normal patterns
+            # Some transactions outside normal patterns
+            elif np.random.random() < 0.2:
                 return timestamp
 
-    def _generate_transaction_amount(self, user_profile: Dict, timestamp: datetime) -> float:
-        """Generate realistic transaction amount based on user patterns and time"""
-        base_amount = np.random.normal(user_profile['avg_tx_amount'], user_profile['tx_amount_std'])
+    def _generate_transaction_amount(
+            self, user_profile: Dict[str, Any], timestamp: datetime) -> float:
+        """Generate realistic transaction amount based on user patterns and time
+
+        Args:
+            user_profile: User profile data
+            timestamp: Transaction timestamp
+
+        Returns:
+            Generated transaction amount
+        """
+        avg_amount = user_profile['avg_tx_amount']
+        std_amount = user_profile['tx_amount_std']
+        base_amount = np.random.normal(avg_amount, std_amount)
 
         # Apply temporal factors
         if timestamp.weekday() >= 5:  # Weekend
@@ -542,7 +734,8 @@ class BehavioralDataGenerator:
         # Check for missing values
         missing_values = df.isnull().sum()
         if missing_values.any():
-            logger.warning(f"Missing values found:\n{missing_values[missing_values > 0]}")
+            missing_cols = missing_values[missing_values > 0]
+            logger.warning(f"Missing values found:\n{missing_cols}")
 
         # Check value ranges
         numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -560,25 +753,37 @@ class BehavioralDataGenerator:
             'basic_stats': {
                 'num_transactions': len(df),
                 'num_users': df['user_id'].nunique(),
-                'date_range': f"{df['timestamp'].min()} to {df['timestamp'].max()}",
+                'date_range': (
+                    f"{df['timestamp'].min()} to {df['timestamp'].max()}"
+                ),
                 'class_distribution': df['risk_label'].value_counts().to_dict(),
                 'avg_transaction_amount': float(df['tx_amount'].mean()),
                 'med_transaction_amount': float(df['tx_amount'].median())
             },
             'temporal_patterns': {
-                'hourly_distribution': df.groupby(df['timestamp'].dt.hour)['tx_id'].count().to_dict(),
-                'weekday_distribution': df.groupby(df['timestamp'].dt.dayofweek)['tx_id'].count().to_dict()
+                'hourly_distribution': (
+                    df.groupby(df['timestamp'].dt.hour)['tx_id'].count().to_dict()
+                ),
+                'weekday_distribution': (
+                    df.groupby(df['timestamp'].dt.dayofweek)['tx_id'].count().to_dict()
+                )
             },
             'risk_patterns': {
-                'risk_by_hour': df.groupby(['tx_hour', 'risk_label']).size().unstack().to_dict(),
-                'risk_by_amount_range': df.groupby(['risk_label'])['tx_amount'].agg(
-                    ['mean', 'std', 'min', 'max']).to_dict()
+                'risk_by_hour': (
+                    df.groupby(['tx_hour', 'risk_label'], observed=True)
+                    .size().unstack().to_dict()
+                ),
+                'risk_by_amount_range': (
+                    df.groupby(['risk_label'], observed=True)['tx_amount']
+                    .agg(['mean', 'std', 'min', 'max']).to_dict()
+                )
             }
         }
 
         # Save statistics
-        stats_file = os.path.join('files', 'json',
-                                  os.path.basename(self.config.data_file).replace('.csv', '_statistics.json'))
+        data_file_base = os.path.basename(self.config.data_file)
+        stats_filename = data_file_base.replace('.csv', '_statistics.json')
+        stats_file = os.path.join('files', 'json', stats_filename)
         os.makedirs(os.path.dirname(stats_file), exist_ok=True)
         with open(stats_file, 'w') as f:
             json.dump(stats, f, indent=2)
@@ -601,7 +806,8 @@ def main():
 
     print("\n=== Generation Complete ===")
     print(f"Dataset: {config.data_file}")
-    print(f"Statistics: {config.data_file.replace('.csv', '_statistics.json')}")
+    stats_file = config.data_file.replace('.csv', '_statistics.json')
+    print(f"Statistics: {stats_file}")
 
 
 if __name__ == "__main__":
