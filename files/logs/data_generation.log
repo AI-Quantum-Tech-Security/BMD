@@ -58,3 +58,12 @@ Name: proportion, dtype: float64
 2025-07-09 15:13:57,794 - INFO - Optimizing DataFrame memory usage...
 2025-07-09 15:13:57,800 - INFO - Generated 525 total transactions from 12 users
 2025-07-09 15:13:57,801 - INFO - Memory usage: 0.04 MB
+2025-07-09 15:14:43,546 - INFO - BehavioralDataGenerator initialized successfully
+2025-07-09 15:14:43,547 - INFO - Starting comprehensive behavioral data generation
+2025-07-09 15:14:43,547 - INFO - Target: 5 normal users, 2 anomalous users
+2025-07-09 15:14:43,547 - INFO - Generating data for 5 normal users
+2025-07-09 15:14:43,572 - INFO - Generating data for 2 anomalous users
+2025-07-09 15:14:43,578 - INFO - Converting to DataFrame...
+2025-07-09 15:14:43,580 - INFO - Optimizing DataFrame memory usage...
+2025-07-09 15:14:43,586 - INFO - Generated 295 total transactions from 7 users
+2025-07-09 15:14:43,587 - INFO - Memory usage: 0.02 MB
