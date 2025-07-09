@@ -10,3 +10,15 @@ fraud         0.013833
 Name: proportion, dtype: float64
 2025-06-29 17:56:42,386 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
 2025-06-29 17:56:42,413 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
+2025-07-09 15:04:43,445 - INFO - Starting comprehensive behavioral data generation
+2025-07-09 15:04:43,445 - INFO - Generating data for 1000 normal users
+2025-07-09 15:04:48,560 - INFO - Generating data for 100 anomalous users
+2025-07-09 15:04:48,993 - INFO - Generated 51799 total transactions
+2025-07-09 15:04:49,019 - INFO - Class balance:
+risk_label
+suspicious    0.66092
+legit         0.32406
+fraud         0.01502
+Name: proportion, dtype: float64
+2025-07-09 15:04:49,882 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
+2025-07-09 15:04:49,904 - INFO - Dataset statistics saved to files/json/synthetic_behavioral_dataset_statistics.json
