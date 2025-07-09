@@ -1,0 +1,10 @@
+2025-07-09 14:49:42,921 - risk_api - ERROR - Failed to load model: list indices must be integers or slices, not str
+2025-07-09 14:50:30,386 - risk_api - INFO - Model loaded successfully
+2025-07-09 14:50:30,386 - risk_api - INFO - Model type: RandomForestClassifier
+2025-07-09 14:50:30,386 - risk_api - INFO - Features count: Using API schema
+2025-07-09 14:53:27,926 - risk_api - INFO - Model loaded successfully
+2025-07-09 14:53:27,926 - risk_api - INFO - Model type: RandomForestClassifier
+2025-07-09 14:53:27,926 - risk_api - INFO - Features count: 12
+2025-07-09 14:53:54,500 - risk_api - INFO - Request received - ID: a0509387-9a18-49e2-80c8-642a1a2f69b4
+2025-07-09 14:53:54,500 - risk_api - INFO - Input features - ID: a0509387-9a18-49e2-80c8-642a1a2f69b4 - {'avg_tx_amount': 500.0, 'device_change_freq': 0.05, 'tx_hour': 14, 'location_change_freq': 0.15, 'is_new_device': 0, 'transaction_count_24h': 5, 'time_since_last_tx': 2.5, 'tx_amount_to_balance_ratio': 0.15, 'ip_address_reputation': 0.85, 'is_weekend': 1, 'transaction_velocity_10min': 2, 'country_change_flag': 0}
+2025-07-09 14:53:54,516 - risk_api - INFO - Prediction output - ID: a0509387-9a18-49e2-80c8-642a1a2f69b4 - Risk Score: 0.7381, Risk Flag: legit, Probability Distribution: [0.07034704 0.7381004  0.19155256]
