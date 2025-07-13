@@ -78,12 +78,12 @@ from enum import Enum
 warnings.filterwarnings('ignore')
 
 # Configure logging
-os.makedirs('files/logs', exist_ok=True)
+os.makedirs('../files/logs', exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('files/logs/enhanced_data_generation.log'),
+        logging.FileHandler('../files/logs/enhanced_data_generation.log'),
         logging.StreamHandler()
     ]
 )
@@ -111,9 +111,9 @@ class EnhancedDataGenerationConfig:
     """Enhanced configuration class with more realistic parameters"""
     # File paths
     data_file: str = 'files/synthetic_behavioral_dataset.csv'
-    schema_file: str = 'files/json/enhanced_feature_schema.json'
+    schema_file: str = '../files/json/enhanced_feature_schema.json'
     doc_file: str = 'files/Enhanced_Behavioral_Authentication_ML.md'
-    api_test_file: str = 'files/api_test_data.json'
+    api_test_file: str = '../files/api_test_data.json'
 
     # User configuration - more realistic distributions
     num_normal_users: int = 100

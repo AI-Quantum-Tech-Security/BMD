@@ -1,0 +1,7 @@
+2025-07-13 11:12:41,510 - httpx - INFO - HTTP Request: GET http://testserver/ "HTTP/1.1 200 OK"
+2025-07-13 11:12:41,521 - httpx - INFO - HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2025-07-13 11:12:41,528 - main - ERROR - Failed to get model info: 503: Model not loaded
+2025-07-13 11:12:41,531 - httpx - INFO - HTTP Request: GET http://testserver/model/info "HTTP/1.1 500 Internal Server Error"
+2025-07-13 11:12:41,854 - httpx - INFO - HTTP Request: POST http://testserver/risk-score "HTTP/1.1 503 Service Unavailable"
+2025-07-13 11:12:41,867 - httpx - INFO - HTTP Request: POST http://testserver/risk-score "HTTP/1.1 422 Unprocessable Entity"
+2025-07-13 11:12:41,875 - httpx - INFO - HTTP Request: POST http://testserver/risk-score/batch "HTTP/1.1 503 Service Unavailable"

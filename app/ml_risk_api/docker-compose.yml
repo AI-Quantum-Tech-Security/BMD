@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  ml-risk-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../files:/app/files:ro  # Mount model files
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ml-risk-api-network
