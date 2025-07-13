@@ -22,7 +22,7 @@ KEY IMPROVEMENTS vs ORIGINAL:
 
 INTEGRATION WITH BMD PROJECT:
 ----------------------------
-Data Generation: Replaces data_generator.py (25 features → 40+ features)
+Data Generation: Replaces generate_behavioral_data.py (25 features → 40+ features)
 ML Training: Supports main.py, train_evaluate_model.py (backward compatible)
 API Testing: Automatic test data generation for final_risk_api.py
 Schema Export: Enhanced JSON for Java integration
