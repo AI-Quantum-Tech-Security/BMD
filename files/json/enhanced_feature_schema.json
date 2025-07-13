@@ -1,0 +1,576 @@
+{
+  "schema_version": "2.0_enhanced",
+  "description": "Enhanced Behavioral Authentication ML Feature Schema",
+  "generated_at": "2025-07-13T08:03:03.530350",
+  "generator_info": {
+    "version": "2.0_enhanced",
+    "author": "olafcio42",
+    "repo": "AI-Quantum-Tech-Security/BMD"
+  },
+  "features": [
+    {
+      "name": "avg_tx_amount",
+      "type": "numeric",
+      "description": "User's average transaction amount",
+      "range": "[20, 10000]",
+      "example": 500.25,
+      "category": "transaction",
+      "importance": "high"
+    },
+    {
+      "name": "tx_amount_zscore",
+      "type": "numeric",
+      "description": "Z-score of current transaction vs user history",
+      "range": "[-5, 5]",
+      "example": 1.2,
+      "category": "transaction",
+      "importance": "high"
+    },
+    {
+      "name": "tx_amount_percentile",
+      "type": "numeric",
+      "description": "Percentile of current transaction in user history",
+      "range": "[0, 100]",
+      "example": 75.5,
+      "category": "transaction",
+      "importance": "medium"
+    },
+    {
+      "name": "amount_balance_ratio",
+      "type": "numeric",
+      "description": "Transaction amount to balance ratio",
+      "range": "[0, 1]",
+      "example": 0.15,
+      "category": "transaction",
+      "importance": "high"
+    },
+    {
+      "name": "device_change_freq",
+      "type": "numeric",
+      "description": "Frequency of device changes",
+      "range": "[0, 1]",
+      "example": 0.05,
+      "category": "device",
+      "importance": "high"
+    },
+    {
+      "name": "is_new_device",
+      "type": "boolean",
+      "description": "Transaction from new device",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "device",
+      "importance": "high"
+    },
+    {
+      "name": "device_fingerprint_similarity",
+      "type": "numeric",
+      "description": "Device fingerprint similarity score",
+      "range": "[0, 1]",
+      "example": 0.85,
+      "category": "device",
+      "importance": "medium"
+    },
+    {
+      "name": "device_type",
+      "type": "categorical",
+      "description": "Type of device used",
+      "values": [
+        "mobile_ios",
+        "mobile_android",
+        "desktop_windows",
+        "desktop_mac",
+        "tablet_ios",
+        "tablet_android",
+        "unknown"
+      ],
+      "example": "mobile_ios",
+      "category": "device",
+      "importance": "medium"
+    },
+    {
+      "name": "location_change_freq",
+      "type": "numeric",
+      "description": "Frequency of location changes",
+      "range": "[0, 1]",
+      "example": 0.15,
+      "category": "location",
+      "importance": "high"
+    },
+    {
+      "name": "country_change_flag",
+      "type": "boolean",
+      "description": "Transaction from different country",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "location",
+      "importance": "high"
+    },
+    {
+      "name": "distance_from_usual_location",
+      "type": "numeric",
+      "description": "Distance from usual location (km)",
+      "range": "[0, 20000]",
+      "example": 15.5,
+      "category": "location",
+      "importance": "medium"
+    },
+    {
+      "name": "location",
+      "type": "categorical",
+      "description": "Transaction origin country",
+      "values": [
+        "US",
+        "UK",
+        "DE",
+        "FR",
+        "IT",
+        "ES",
+        "CA",
+        "AU",
+        "JP",
+        "CN",
+        "IN",
+        "BR",
+        "MX",
+        "NL",
+        "SE"
+      ],
+      "example": "US",
+      "category": "location",
+      "importance": "medium"
+    },
+    {
+      "name": "tx_hour",
+      "type": "numeric",
+      "description": "Hour of transaction (0-23)",
+      "range": "[0, 23]",
+      "example": 14,
+      "category": "temporal",
+      "importance": "medium"
+    },
+    {
+      "name": "is_weekend",
+      "type": "boolean",
+      "description": "Weekend transaction flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 1,
+      "category": "temporal",
+      "importance": "low"
+    },
+    {
+      "name": "is_holiday",
+      "type": "boolean",
+      "description": "Holiday transaction flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "temporal",
+      "importance": "low"
+    },
+    {
+      "name": "is_business_hours",
+      "type": "boolean",
+      "description": "Business hours transaction flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 1,
+      "category": "temporal",
+      "importance": "medium"
+    },
+    {
+      "name": "is_unusual_hour",
+      "type": "boolean",
+      "description": "Unusual hour transaction flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "temporal",
+      "importance": "medium"
+    },
+    {
+      "name": "transaction_count_24h",
+      "type": "integer",
+      "description": "Transactions in last 24 hours",
+      "range": ">=0",
+      "example": 5,
+      "category": "velocity",
+      "importance": "high"
+    },
+    {
+      "name": "transaction_velocity_10min",
+      "type": "integer",
+      "description": "Transactions in last 10 minutes",
+      "range": ">=0",
+      "example": 2,
+      "category": "velocity",
+      "importance": "high"
+    },
+    {
+      "name": "transaction_volume_24h",
+      "type": "numeric",
+      "description": "Transaction volume in last 24 hours",
+      "range": ">=0",
+      "example": 1250.75,
+      "category": "velocity",
+      "importance": "medium"
+    },
+    {
+      "name": "time_since_last_tx",
+      "type": "numeric",
+      "description": "Hours since last transaction",
+      "range": ">=0",
+      "example": 2.5,
+      "category": "velocity",
+      "importance": "medium"
+    },
+    {
+      "name": "account_age_days",
+      "type": "integer",
+      "description": "Account age in days",
+      "range": ">=0",
+      "example": 365,
+      "category": "account",
+      "importance": "medium"
+    },
+    {
+      "name": "merchant_id",
+      "type": "categorical",
+      "description": "Merchant identifier",
+      "values": [
+        "merchant_001",
+        "merchant_002",
+        "merchant_003",
+        "merchant_004",
+        "merchant_005",
+        "merchant_006",
+        "merchant_007",
+        "merchant_008",
+        "merchant_009",
+        "merchant_010",
+        "merchant_011",
+        "merchant_012",
+        "merchant_013",
+        "merchant_014",
+        "merchant_015",
+        "merchant_016",
+        "merchant_017",
+        "merchant_018",
+        "merchant_019",
+        "merchant_020"
+      ],
+      "example": "merchant_001",
+      "category": "merchant",
+      "importance": "medium"
+    },
+    {
+      "name": "merchant_risk_score",
+      "type": "numeric",
+      "description": "Merchant risk score",
+      "range": "[0, 1]",
+      "example": 0.15,
+      "category": "merchant",
+      "importance": "high"
+    },
+    {
+      "name": "is_high_risk_merchant",
+      "type": "boolean",
+      "description": "High risk merchant flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "merchant",
+      "importance": "high"
+    },
+    {
+      "name": "ip_address_reputation",
+      "type": "numeric",
+      "description": "IP address reputation score",
+      "range": "[0, 1]",
+      "example": 0.85,
+      "category": "network",
+      "importance": "high"
+    },
+    {
+      "name": "vpn_proxy_flag",
+      "type": "boolean",
+      "description": "VPN/proxy usage flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "network",
+      "importance": "high"
+    },
+    {
+      "name": "is_vpn_detected",
+      "type": "boolean",
+      "description": "VPN detection flag",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "network",
+      "importance": "high"
+    },
+    {
+      "name": "typing_pattern_similarity",
+      "type": "numeric",
+      "description": "Typing pattern similarity",
+      "range": "[0, 1]",
+      "example": 0.92,
+      "category": "behavior",
+      "importance": "high"
+    },
+    {
+      "name": "mouse_movement_similarity",
+      "type": "numeric",
+      "description": "Mouse movement similarity",
+      "range": "[0, 1]",
+      "example": 0.88,
+      "category": "behavior",
+      "importance": "medium"
+    },
+    {
+      "name": "session_duration",
+      "type": "numeric",
+      "description": "Session duration in minutes",
+      "range": "[1, 120]",
+      "example": 25.5,
+      "category": "behavior",
+      "importance": "medium"
+    },
+    {
+      "name": "login_frequency_7d",
+      "type": "integer",
+      "description": "Login frequency in last 7 days",
+      "range": ">=0",
+      "example": 12,
+      "category": "behavior",
+      "importance": "medium"
+    },
+    {
+      "name": "failed_login_attempts",
+      "type": "integer",
+      "description": "Failed login attempts",
+      "range": ">=0",
+      "example": 1,
+      "category": "behavior",
+      "importance": "high"
+    },
+    {
+      "name": "mobility_score",
+      "type": "numeric",
+      "description": "Combined mobility score",
+      "range": "[0, 2]",
+      "example": 0.25,
+      "category": "interaction",
+      "importance": "medium"
+    },
+    {
+      "name": "tx_intensity",
+      "type": "numeric",
+      "description": "Transaction intensity score",
+      "range": ">=0",
+      "example": 0.1,
+      "category": "interaction",
+      "importance": "medium"
+    },
+    {
+      "name": "auth_risk_score",
+      "type": "numeric",
+      "description": "Authentication risk score",
+      "range": ">=0",
+      "example": 1.5,
+      "category": "interaction",
+      "importance": "high"
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "description": "Unique user identifier",
+      "example": "user_123456",
+      "category": "system",
+      "importance": "system"
+    },
+    {
+      "name": "tx_id",
+      "type": "integer",
+      "description": "Unique transaction identifier",
+      "example": 5001,
+      "category": "system",
+      "importance": "system"
+    },
+    {
+      "name": "timestamp",
+      "type": "datetime",
+      "description": "Transaction timestamp",
+      "format": "YYYY-MM-DD HH:MM:SS",
+      "example": "2023-03-15 10:30:00",
+      "category": "system",
+      "importance": "system"
+    },
+    {
+      "name": "tx_amount",
+      "type": "numeric",
+      "description": "Transaction amount",
+      "range": ">=1",
+      "example": 125.75,
+      "category": "system",
+      "importance": "system"
+    },
+    {
+      "name": "account_balance",
+      "type": "numeric",
+      "description": "Account balance",
+      "range": ">=0",
+      "example": 5000.0,
+      "category": "system",
+      "importance": "system"
+    },
+    {
+      "name": "risk_label",
+      "type": "categorical",
+      "description": "Risk category label",
+      "values": [
+        "legit",
+        "suspicious",
+        "fraud"
+      ],
+      "label_categorical": true,
+      "example": "legit",
+      "category": "target",
+      "importance": "target"
+    },
+    {
+      "name": "risk_flag_manual",
+      "type": "boolean",
+      "description": "Binary risk flag",
+      "values": [
+        0,
+        1
+      ],
+      "label_binary": true,
+      "example": 0,
+      "category": "target",
+      "importance": "target"
+    }
+  ],
+  "target_variables": {
+    "binary": "risk_flag_manual",
+    "categorical": "risk_label"
+  },
+  "feature_categories": {
+    "transaction": [
+      "avg_tx_amount",
+      "tx_amount_zscore",
+      "tx_amount_percentile",
+      "amount_balance_ratio"
+    ],
+    "device": [
+      "device_change_freq",
+      "is_new_device",
+      "device_fingerprint_similarity",
+      "device_type"
+    ],
+    "location": [
+      "location_change_freq",
+      "country_change_flag",
+      "distance_from_usual_location",
+      "location"
+    ],
+    "temporal": [
+      "tx_hour",
+      "is_weekend",
+      "is_holiday",
+      "is_business_hours",
+      "is_unusual_hour"
+    ],
+    "velocity": [
+      "transaction_count_24h",
+      "transaction_velocity_10min",
+      "transaction_volume_24h",
+      "time_since_last_tx"
+    ],
+    "behavior": [
+      "typing_pattern_similarity",
+      "mouse_movement_similarity",
+      "session_duration",
+      "login_frequency_7d",
+      "failed_login_attempts"
+    ],
+    "network": [
+      "ip_address_reputation",
+      "vpn_proxy_flag",
+      "is_vpn_detected"
+    ],
+    "merchant": [
+      "merchant_id",
+      "merchant_risk_score",
+      "is_high_risk_merchant"
+    ],
+    "account": [
+      "account_age_days"
+    ],
+    "interaction": [
+      "mobility_score",
+      "tx_intensity",
+      "auth_risk_score"
+    ]
+  },
+  "high_importance_features": [
+    "avg_tx_amount",
+    "tx_amount_zscore",
+    "amount_balance_ratio",
+    "device_change_freq",
+    "is_new_device",
+    "location_change_freq",
+    "country_change_flag",
+    "transaction_count_24h",
+    "transaction_velocity_10min",
+    "merchant_risk_score",
+    "is_high_risk_merchant",
+    "ip_address_reputation",
+    "vpn_proxy_flag",
+    "is_vpn_detected",
+    "typing_pattern_similarity",
+    "failed_login_attempts",
+    "auth_risk_score"
+  ],
+  "api_features": [
+    "tx_amount",
+    "tx_hour",
+    "is_weekend",
+    "is_new_device",
+    "device_fingerprint_similarity",
+    "distance_from_usual_location",
+    "transaction_count_24h",
+    "typing_pattern_similarity",
+    "amount_balance_ratio",
+    "vpn_proxy_flag",
+    "ip_address_reputation",
+    "merchant_risk_score",
+    "session_duration",
+    "failed_login_attempts",
+    "is_business_hours"
+  ]
+}
