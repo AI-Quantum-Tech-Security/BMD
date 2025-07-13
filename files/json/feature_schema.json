@@ -1,0 +1,257 @@
+{
+  "schema_version": "1.0",
+  "description": "Behavioral Authentication ML Feature Schema",
+  "generated_at": "2025-07-13T07:17:10.146748",
+  "features": [
+    {
+      "name": "avg_tx_amount",
+      "type": "numeric",
+      "description": "Average transaction amount for the user",
+      "range": "[20, 10000]",
+      "example": 500.25,
+      "category": "transaction"
+    },
+    {
+      "name": "tx_amount_zscore",
+      "type": "numeric",
+      "description": "Z-score of current transaction amount vs user history",
+      "range": "[-5, 5]",
+      "example": 1.2,
+      "category": "transaction"
+    },
+    {
+      "name": "tx_amount_percentile",
+      "type": "numeric",
+      "description": "Percentile of current transaction in user history",
+      "range": "[0, 100]",
+      "example": 75.5,
+      "category": "transaction"
+    },
+    {
+      "name": "device_change_freq",
+      "type": "numeric",
+      "description": "Frequency of device changes for the user",
+      "range": "[0, 1]",
+      "example": 0.05,
+      "category": "device"
+    },
+    {
+      "name": "is_new_device",
+      "type": "boolean",
+      "description": "Boolean flag indicating if transaction is from new device",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "device"
+    },
+    {
+      "name": "device_fingerprint_similarity",
+      "type": "numeric",
+      "description": "Similarity to user's typical device fingerprint",
+      "range": "[0, 1]",
+      "example": 0.85,
+      "category": "device"
+    },
+    {
+      "name": "location_change_freq",
+      "type": "numeric",
+      "description": "Frequency of location changes for the user",
+      "range": "[0, 1]",
+      "example": 0.15,
+      "category": "location"
+    },
+    {
+      "name": "country_change_flag",
+      "type": "boolean",
+      "description": "Flag if transaction origin country differs from usual",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "location"
+    },
+    {
+      "name": "distance_from_usual_location",
+      "type": "numeric",
+      "description": "Distance from user's usual transaction locations (km)",
+      "range": "[0, 20000]",
+      "example": 15.5,
+      "category": "location"
+    },
+    {
+      "name": "tx_hour",
+      "type": "numeric",
+      "description": "Hour of the transaction (0-23)",
+      "range": "[0, 23]",
+      "example": 14,
+      "category": "temporal"
+    },
+    {
+      "name": "is_weekend",
+      "type": "boolean",
+      "description": "Boolean flag for weekend transactions",
+      "values": [
+        0,
+        1
+      ],
+      "example": 1,
+      "category": "temporal"
+    },
+    {
+      "name": "is_holiday",
+      "type": "boolean",
+      "description": "Boolean flag for holiday transactions",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "temporal"
+    },
+    {
+      "name": "transaction_count_24h",
+      "type": "integer",
+      "description": "Number of transactions in last 24 hours",
+      "range": ">=0",
+      "example": 5,
+      "category": "velocity"
+    },
+    {
+      "name": "transaction_velocity_10min",
+      "type": "integer",
+      "description": "Number of transactions in last 10 minutes",
+      "range": ">=0",
+      "example": 2,
+      "category": "velocity"
+    },
+    {
+      "name": "transaction_volume_24h",
+      "type": "numeric",
+      "description": "Total transaction volume in last 24 hours",
+      "range": ">=0",
+      "example": 1250.75,
+      "category": "velocity"
+    },
+    {
+      "name": "tx_amount_to_balance_ratio",
+      "type": "numeric",
+      "description": "Ratio of transaction amount to account balance",
+      "range": "[0, 1]",
+      "example": 0.15,
+      "category": "account"
+    },
+    {
+      "name": "account_age_days",
+      "type": "integer",
+      "description": "Age of the account in days",
+      "range": ">=0",
+      "example": 365,
+      "category": "account"
+    },
+    {
+      "name": "ip_address_reputation",
+      "type": "numeric",
+      "description": "Reputation score of IP address (0=bad, 1=good)",
+      "range": "[0, 1]",
+      "example": 0.85,
+      "category": "network"
+    },
+    {
+      "name": "vpn_proxy_flag",
+      "type": "boolean",
+      "description": "Flag indicating VPN or proxy usage",
+      "values": [
+        0,
+        1
+      ],
+      "example": 0,
+      "category": "network"
+    },
+    {
+      "name": "typing_pattern_similarity",
+      "type": "numeric",
+      "description": "Similarity to user's typical typing patterns",
+      "range": "[0, 1]",
+      "example": 0.92,
+      "category": "behavior"
+    },
+    {
+      "name": "mouse_movement_similarity",
+      "type": "numeric",
+      "description": "Similarity to user's typical mouse movement patterns",
+      "range": "[0, 1]",
+      "example": 0.88,
+      "category": "behavior"
+    },
+    {
+      "name": "user_id",
+      "type": "string",
+      "description": "Unique identifier for the user",
+      "example": "user_123",
+      "category": "system"
+    },
+    {
+      "name": "tx_id",
+      "type": "integer",
+      "description": "Unique identifier for the transaction",
+      "example": 5001,
+      "category": "system"
+    },
+    {
+      "name": "timestamp",
+      "type": "datetime",
+      "description": "Timestamp of the transaction",
+      "format": "YYYY-MM-DD HH:MM:SS",
+      "example": "2023-03-15 10:30:00",
+      "category": "system"
+    },
+    {
+      "name": "tx_amount",
+      "type": "numeric",
+      "description": "Amount of the current transaction",
+      "range": ">=1",
+      "example": 125.75,
+      "category": "system"
+    },
+    {
+      "name": "account_balance",
+      "type": "numeric",
+      "description": "User's account balance at time of transaction",
+      "range": ">=0",
+      "example": 5000.0,
+      "category": "system"
+    },
+    {
+      "name": "risk_label",
+      "type": "categorical",
+      "description": "Categorical risk label (legit, suspicious, fraud)",
+      "values": [
+        "legit",
+        "suspicious",
+        "fraud"
+      ],
+      "label_categorical": true,
+      "example": "legit",
+      "category": "target"
+    },
+    {
+      "name": "risk_flag_manual",
+      "type": "boolean",
+      "description": "Binary risk flag (0=Normal, 1=Anomalous)",
+      "values": [
+        0,
+        1
+      ],
+      "label_binary": true,
+      "example": 0,
+      "category": "target"
+    }
+  ],
+  "target_variables": {
+    "binary": "risk_flag_manual",
+    "categorical": "risk_label"
+  }
+}

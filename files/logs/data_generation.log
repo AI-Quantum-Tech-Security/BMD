@@ -10,3 +10,79 @@ fraud         0.013833
 Name: proportion, dtype: float64
 2025-06-29 17:56:42,386 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
 2025-06-29 17:56:42,413 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
+2025-07-09 16:58:42,239 - INFO - Starting comprehensive behavioral data generation
+2025-07-09 16:58:42,240 - INFO - Generating data for 1000 normal users
+2025-07-09 16:58:47,990 - INFO - Generating data for 100 anomalous users
+2025-07-09 16:58:48,530 - INFO - Generated 51319 total transactions
+2025-07-09 16:58:48,570 - INFO - Class balance:
+risk_label
+suspicious    0.661159
+legit         0.323798
+fraud         0.015043
+Name: proportion, dtype: float64
+2025-07-09 16:58:49,513 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
+2025-07-09 16:58:49,556 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
+2025-07-09 17:05:48,486 - INFO - Initialized generator with 1000 normal and 100 anomalous users
+2025-07-09 17:05:48,487 - INFO - Starting dataset generation...
+2025-07-09 17:05:48,488 - INFO - Starting comprehensive behavioral data generation
+2025-07-09 17:05:48,488 - INFO - Generating data for 1000 normal users
+2025-07-09 17:05:48,488 - INFO - Progress: 0/1000 normal users processed
+2025-07-09 17:05:49,031 - INFO - Progress: 100/1000 normal users processed
+2025-07-09 17:05:49,574 - INFO - Progress: 200/1000 normal users processed
+2025-07-09 17:05:50,128 - INFO - Progress: 300/1000 normal users processed
+2025-07-09 17:05:50,714 - INFO - Progress: 400/1000 normal users processed
+2025-07-09 17:05:51,250 - INFO - Progress: 500/1000 normal users processed
+2025-07-09 17:05:51,820 - INFO - Progress: 600/1000 normal users processed
+2025-07-09 17:05:52,378 - INFO - Progress: 700/1000 normal users processed
+2025-07-09 17:05:52,892 - INFO - Progress: 800/1000 normal users processed
+2025-07-09 17:05:53,446 - INFO - Progress: 900/1000 normal users processed
+2025-07-09 17:05:53,944 - INFO - Generating data for 100 anomalous users
+2025-07-09 17:05:53,945 - INFO - Progress: 0/100 anomalous users processed
+2025-07-09 17:05:53,996 - INFO - Progress: 25/100 anomalous users processed
+2025-07-09 17:05:54,052 - INFO - Progress: 50/100 anomalous users processed
+2025-07-09 17:05:54,107 - INFO - Progress: 75/100 anomalous users processed
+2025-07-09 17:05:54,163 - INFO - Creating DataFrame from generated data
+2025-07-09 17:05:54,410 - INFO - Generated 51277 total transactions from 1100 users
+2025-07-09 17:05:54,429 - INFO - Validating dataset quality...
+2025-07-09 17:05:54,448 - INFO - Class balance:
+risk_label
+suspicious    0.656259
+legit         0.326911
+fraud         0.016830
+Name: proportion, dtype: float64
+2025-07-09 17:05:55,279 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
+2025-07-09 17:05:55,279 - INFO - Generating dataset statistics...
+2025-07-09 17:05:55,329 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
+2025-07-09 17:05:55,331 - INFO - Feature schema saved to files/json/feature_schema.json
+2025-07-13 07:17:02,689 - INFO - Initialized generator with 1000 normal and 100 anomalous users
+2025-07-13 07:17:02,690 - INFO -  Starting dataset generation...
+2025-07-13 07:17:02,690 - INFO - Starting comprehensive behavioral data generation
+2025-07-13 07:17:02,690 - INFO - Generating data for 1000 normal users
+2025-07-13 07:17:02,690 - INFO - Progress: 0/1000 normal users processed
+2025-07-13 07:17:03,471 - INFO - Progress: 100/1000 normal users processed
+2025-07-13 07:17:04,385 - INFO - Progress: 200/1000 normal users processed
+2025-07-13 07:17:04,915 - INFO - Progress: 300/1000 normal users processed
+2025-07-13 07:17:05,444 - INFO - Progress: 400/1000 normal users processed
+2025-07-13 07:17:06,104 - INFO - Progress: 500/1000 normal users processed
+2025-07-13 07:17:06,713 - INFO - Progress: 600/1000 normal users processed
+2025-07-13 07:17:07,250 - INFO - Progress: 700/1000 normal users processed
+2025-07-13 07:17:07,861 - INFO - Progress: 800/1000 normal users processed
+2025-07-13 07:17:08,368 - INFO - Progress: 900/1000 normal users processed
+2025-07-13 07:17:08,826 - INFO - Generating data for 100 anomalous users
+2025-07-13 07:17:08,826 - INFO - Progress: 0/100 anomalous users processed
+2025-07-13 07:17:08,876 - INFO - Progress: 25/100 anomalous users processed
+2025-07-13 07:17:08,923 - INFO - Progress: 50/100 anomalous users processed
+2025-07-13 07:17:08,981 - INFO - Progress: 75/100 anomalous users processed
+2025-07-13 07:17:09,034 - INFO - Creating DataFrame from generated data
+2025-07-13 07:17:09,283 - INFO - Generated 51503 total transactions from 1100 users
+2025-07-13 07:17:09,304 - INFO - Validating dataset quality...
+2025-07-13 07:17:09,327 - INFO - Class balance:
+risk_label
+suspicious    0.660156
+legit         0.326389
+fraud         0.013456
+Name: proportion, dtype: float64
+2025-07-13 07:17:10,095 - INFO - Dataset saved successfully to files/synthetic_behavioral_dataset.csv
+2025-07-13 07:17:10,096 - INFO - Generating dataset statistics...
+2025-07-13 07:17:10,145 - INFO - Dataset statistics saved to files\json\synthetic_behavioral_dataset_statistics.json
+2025-07-13 07:17:10,147 - INFO - Feature schema saved to files/json/feature_schema.json
