@@ -12,7 +12,7 @@ import os
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import app
+from app.ml_risk_api.main import app
 
 client = TestClient(app)
 
