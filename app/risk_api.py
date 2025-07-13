@@ -872,7 +872,7 @@ if __name__ == '__main__':
 
     logger.info("CORS enabled for all origins")
     logger.info("API Endpoints:")
-    logger.info("  📊 Swagger UI: https://localhost:5000/docs")
+    logger.info("Swagger UI: https://localhost:5000/docs")
     logger.info("Health check: GET /")
     logger.info("Risk score: POST /risk-score")
     logger.info("Prediction: POST /predict")
