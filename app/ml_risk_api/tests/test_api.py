@@ -2,17 +2,16 @@
 Test suite for ML Risk API
 """
 
-import pytest
-import httpx
-import asyncio
 from fastapi.testclient import TestClient
 import sys
 import os
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Dodaj katalog z main.py do ścieżki
+current_dir = os.path.dirname(os.path.abspath(__file__))
+main_dir = os.path.dirname(current_dir)
+sys.path.insert(0, main_dir)
 
-from app.ml_risk_api.main import app
+from main import app
 
 client = TestClient(app)
 
