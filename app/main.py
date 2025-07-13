@@ -27,7 +27,7 @@ warnings.filterwarnings('ignore')
 DATA_FILE = 'files/synthetic_behavioral_dataset.csv'
 MODEL_OUTPUT_FILE = '../files/model.pkl'
 MODEL_FEATURES_FILE = '../files/model_features.json'
-EVAL_REPORT_FILE = '../files/risk_model_eval.md'
+EVAL_REPORT_FILE = '../docx/risk_model_eval.md'
 TARGET_COLUMN = 'risk_label'
 
 # Enhanced data generation parameters
