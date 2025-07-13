@@ -4,7 +4,7 @@ Response models for ML Risk API
 
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, List
 
 
 class RiskScoreResponse(BaseModel):

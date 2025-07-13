@@ -9,7 +9,6 @@ import logging
 import os
 from typing import Dict, Any, List
 from datetime import datetime
-import json
 
 logger = logging.getLogger(__name__)
 

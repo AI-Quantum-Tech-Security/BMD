@@ -3,11 +3,6 @@
 ENHANCED BEHAVIORAL AUTHENTICATION ML DATA GENERATOR v2.0
 =============================================================================
 
-Author: olafcio42
-Repository: AI-Quantum-Tech-Security/BMD
-Date: 2025-07-13
-Version: 2.0 Enhanced
-
 DESCRIPTION:
 -----------
 Advanced synthetic behavioral data generator for ML authentication systems.
@@ -34,6 +29,7 @@ Schema Export: Enhanced JSON for Java integration
 ML Pipeline: Production-ready data for complete ML workflow
 
 TECHNOLOGIES USED:
+-----------------
 -----------------
 - pandas, numpy: Data manipulation and statistical computations
 - typing, dataclasses: Type safety and configuration management
@@ -68,9 +64,8 @@ from datetime import datetime, timedelta
 import random
 import os
 import json
-import uuid
 import logging
-from typing import Dict, List, Tuple, Any, Optional, Union
+from typing import Dict, List, Tuple, Any
 from dataclasses import dataclass
 import warnings
 from enum import Enum

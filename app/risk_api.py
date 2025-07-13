@@ -4,11 +4,6 @@
 RISK API - BEHAVIORAL AUTHENTICATION WITH HTTPS & CORS
 =============================================================================
 
-Author: olafcio42
-Repository: AI-Quantum-Tech-Security/BMD
-Date: 2025-07-13
-Version: 1.2
-
 Single-file Flask API for behavioral risk assessment with HTTPS, CORS and Swagger support
 """
 
@@ -878,10 +873,10 @@ if __name__ == '__main__':
     logger.info("CORS enabled for all origins")
     logger.info("API Endpoints:")
     logger.info("  📊 Swagger UI: https://localhost:5000/docs")
-    logger.info("  🏥 Health check: GET /")
-    logger.info("  🎯 Risk score: POST /risk-score")
-    logger.info("  🔮 Prediction: POST /predict")
-    logger.info("  ℹ️  Model info: GET /model-info")
+    logger.info("Health check: GET /")
+    logger.info("Risk score: POST /risk-score")
+    logger.info("Prediction: POST /predict")
+    logger.info("Model info: GET /model-info")
 
     app.run(
         host=host,

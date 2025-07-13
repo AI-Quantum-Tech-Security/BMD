@@ -109,10 +109,6 @@ Performance Expectations:
     - Memory usage: ~500MB-2GB depending on feature count and balancing
     - Handles datasets from 1K to 1M+ samples efficiently
 
-Author: olafcio42
-Created: 2025-07-13
-Version: 2.0.0
-License: MIT
 """
 
 import pandas as pd

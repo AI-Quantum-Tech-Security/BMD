@@ -4,7 +4,6 @@ Request models for ML Risk API using Pydantic for validation
 
 from pydantic import BaseModel, Field, validator
 from typing import Optional
-from datetime import datetime
 
 
 class RiskScoreRequest(BaseModel):

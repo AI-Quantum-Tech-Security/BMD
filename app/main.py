@@ -306,9 +306,9 @@ def generate_enhanced_behavioral_data():
     correlations = df[numeric_cols].corrwith(df['risk_flag_manual']).abs().sort_values(ascending=False)
     high_corr = correlations[correlations > 0.8]
     if len(high_corr) > 1:  # Exclude perfect correlation with itself
-        print(f"⚠️ Warning: High correlations detected (>0.8): {high_corr.head()}")
+        print(f"Warning: High correlations detected (>0.8): {high_corr.head()}")
     else:
-        print(f"✅ No suspicious high correlations detected")
+        print(f"No suspicious high correlations detected")
 
     print("\n--- Enhanced data generation completed ---\n")
     return df
@@ -563,7 +563,7 @@ def train_evaluate_enhanced_model():
             f.write("| Model | F1-Score | ROC-AUC | CV Mean | CV Std | Status |\n")
             f.write("|-------|----------|---------|---------|--------|---------|\n")
             for name, res in results.items():
-                status = "✅ Best" if name == best_model_name else ""
+                status = "Best" if name == best_model_name else ""
                 f.write(
                     f"| {name} | {res['f1']:.4f} | {res['roc_auc']:.4f if res['roc_auc'] else 'N/A'} | {res['cv_mean']:.4f} | {res['cv_std']:.4f} | {status} |\n")
 
@@ -601,18 +601,18 @@ def train_evaluate_enhanced_model():
             stability = best_results['cv_std'] / best_results['cv_mean']
             f.write(f"- **Model Stability:** {stability:.4f}")
             if stability < 0.1:
-                f.write(" ✅ Very stable\n")
+                f.write("Very stable\n")
             elif stability < 0.2:
-                f.write(" ⚠️ Moderately stable\n")
+                f.write("Moderately stable\n")
             else:
-                f.write(" ❌ Unstable - high variance\n")
+                f.write("Unstable - high variance\n")
 
             if best_results['roc_auc'] and best_results['roc_auc'] > 0.95:
-                f.write("- **Overfitting Check:** ⚠️ Very high AUC - monitor for overfitting\n")
+                f.write("- **Overfitting Check:** Very high AUC - monitor for overfitting\n")
             elif best_results['roc_auc'] and best_results['roc_auc'] > 0.8:
-                f.write("- **Performance:** ✅ Good discriminative performance\n")
+                f.write("- **Performance:** Good discriminative performance\n")
             else:
-                f.write("- **Performance:** ⚠️ Moderate performance - consider improvements\n")
+                f.write("- **Performance:** Moderate performance - consider improvements\n")
 
             f.write(f"\n## Recommendations\n")
             f.write(f"- **Data Collection:** Collect more diverse real-world examples\n")
@@ -665,19 +665,19 @@ if __name__ == "__main__":
     model_results = train_evaluate_enhanced_model()
 
     print("\n=== Pipeline completed successfully! ===")
-    print(f"📊 Check the results in: {EVAL_REPORT_FILE}")
-    print(f"🤖 Model saved to: {MODEL_OUTPUT_FILE}")
-    print(f"📋 Features saved to: {MODEL_FEATURES_FILE}")
+    print(f"Check the results in: {EVAL_REPORT_FILE}")
+    print(f"Model saved to: {MODEL_OUTPUT_FILE}")
+    print(f"Features saved to: {MODEL_FEATURES_FILE}")
 
     # Summary statistics
     if model_results:
         best_model = max(model_results.keys(), key=lambda x: model_results[x]['cv_mean'])
         best_score = model_results[best_model]['cv_mean']
-        print(f"🏆 Best model: {best_model} (CV F1: {best_score:.4f})")
+        print(f"Best model: {best_model} (CV F1: {best_score:.4f})")
 
         if best_score > 0.95:
-            print("⚠️  Warning: Very high performance - check for data leakage or overfitting")
+            print("Warning: Very high performance - check for data leakage or overfitting")
         elif best_score > 0.8:
-            print("✅ Good model performance achieved")
+            print("Good model performance achieved")
         else:
-            print("📈 Model performance is moderate - consider improvements")
+            print("Model performance is moderate - consider improvements")

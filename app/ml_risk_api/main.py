@@ -3,15 +3,10 @@
 ML RISK API - BEHAVIORAL AUTHENTICATION MICROSERVICE
 =============================================================================
 
-Author: olafcio42
-Repository: AI-Quantum-Tech-Security/BMD
-Date: 2025-07-13
-Version: 1.0
-
 FastAPI microservice for serving XGBoost behavioral risk assessment model
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
@@ -19,7 +14,6 @@ import time
 import os
 from datetime import datetime
 from typing import Dict, Any, List
-import traceback
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
