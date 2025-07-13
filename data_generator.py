@@ -116,10 +116,10 @@ class EnhancedDataGenerationConfig:
     api_test_file: str = 'files/api_test_data.json'
 
     # User configuration - more realistic distributions
-    num_normal_users: int = 1000
-    num_anomalous_users: int = 200
-    transactions_per_normal_user_mean: int = 25
-    transactions_per_anomalous_user_mean: int = 25
+    num_normal_users: int = 100
+    num_anomalous_users: int = 20
+    transactions_per_normal_user_mean: int = 10
+    transactions_per_anomalous_user_mean: int = 10
 
     # Date range
     start_date: datetime = datetime(2023, 1, 1)
