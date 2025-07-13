@@ -68,3 +68,39 @@ Name: count, dtype: int64
 2025-07-13 08:03:03,532 - INFO - Enhanced feature schema saved to files/json/enhanced_feature_schema.json
 2025-07-13 08:03:03,532 - INFO - Generating 100 API test samples
 2025-07-13 08:03:03,563 - INFO - API test data saved to files/api_test_data.json
+2025-07-13 09:00:58,468 - INFO - Enhanced generator initialized: 2000 normal users, 400 anomalous users
+2025-07-13 09:00:58,468 - INFO - Starting enhanced dataset generation...
+2025-07-13 09:00:58,468 - INFO - Starting enhanced comprehensive behavioral data generation
+2025-07-13 09:00:58,468 - INFO - Generating data for 2000 normal users
+2025-07-13 09:00:58,468 - INFO - Progress: 0/2000 normal users processed
+2025-07-13 09:00:59,984 - INFO - Progress: 200/2000 normal users processed
+2025-07-13 09:01:01,435 - INFO - Progress: 400/2000 normal users processed
+2025-07-13 09:01:02,911 - INFO - Progress: 600/2000 normal users processed
+2025-07-13 09:01:04,434 - INFO - Progress: 800/2000 normal users processed
+2025-07-13 09:01:05,968 - INFO - Progress: 1000/2000 normal users processed
+2025-07-13 09:01:15,739 - INFO - Enhanced generator initialized: 1000 normal users, 200 anomalous users
+2025-07-13 09:01:15,740 - INFO - Starting enhanced dataset generation...
+2025-07-13 09:01:15,740 - INFO - Starting enhanced comprehensive behavioral data generation
+2025-07-13 09:01:15,740 - INFO - Generating data for 1000 normal users
+2025-07-13 09:01:15,740 - INFO - Progress: 0/1000 normal users processed
+2025-07-13 09:01:17,054 - INFO - Progress: 200/1000 normal users processed
+2025-07-13 09:01:18,388 - INFO - Progress: 400/1000 normal users processed
+2025-07-13 09:01:19,858 - INFO - Progress: 600/1000 normal users processed
+2025-07-13 09:01:21,339 - INFO - Progress: 800/1000 normal users processed
+2025-07-13 09:01:22,862 - INFO - Generating data for 200 anomalous users
+2025-07-13 09:01:22,863 - INFO - Progress: 0/200 anomalous users processed
+2025-07-13 09:01:23,071 - INFO - Progress: 50/200 anomalous users processed
+2025-07-13 09:01:23,300 - INFO - Progress: 100/200 anomalous users processed
+2025-07-13 09:01:23,501 - INFO - Progress: 150/200 anomalous users processed
+2025-07-13 09:01:23,695 - INFO - Creating enhanced DataFrame from generated data
+2025-07-13 09:01:24,140 - INFO - Generated 65538 total transactions from 1200 users
+2025-07-13 09:01:24,144 - INFO - Risk label distribution:
+risk_label
+legit         63447
+suspicious     1983
+fraud           108
+Name: count, dtype: int64
+2025-07-13 09:01:25,482 - INFO - Enhanced dataset saved to files/synthetic_behavioral_dataset.csv
+2025-07-13 09:01:25,484 - INFO - Enhanced feature schema saved to files/json/enhanced_feature_schema.json
+2025-07-13 09:01:25,485 - INFO - Generating 100 API test samples
+2025-07-13 09:01:25,511 - INFO - API test data saved to files/api_test_data.json
