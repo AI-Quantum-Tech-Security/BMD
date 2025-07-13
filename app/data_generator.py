@@ -110,7 +110,7 @@ class ActivityLevel(Enum):
 class EnhancedDataGenerationConfig:
     """Enhanced configuration class with more realistic parameters"""
     # File paths
-    data_file: str = 'files/synthetic_behavioral_dataset.csv'
+    data_file: str = '../files/synthetic_behavioral_dataset.csv'
     schema_file: str = '../files/json/enhanced_feature_schema.json'
     doc_file: str = 'files/Enhanced_Behavioral_Authentication_ML.md'
     api_test_file: str = '../files/api_test_data.json'

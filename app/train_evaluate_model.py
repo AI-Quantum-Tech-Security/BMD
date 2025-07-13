@@ -266,11 +266,11 @@ class EnhancedBehavioralModelTrainer:
             Dict: Complete configuration with defaults
         """
         default_config = {
-            'data_file': 'files/synthetic_behavioral_dataset.csv',
-            'model_output_file': 'files/enhanced_model.pkl',
+            'data_file': '../files/synthetic_behavioral_dataset.csv',
+            'model_output_file': '../files/enhanced_model.pkl',
             'target_column': 'risk_label',
-            'eval_report_file': 'files/enhanced_risk_model_eval.md',
-            'model_features_file': 'files/enhanced_model_features.json',
+            'eval_report_file': '../files/enhanced_risk_model_eval.md',
+            'model_features_file': '../files/enhanced_model_features.json',
             'test_size': 0.25,
             'cv_folds': 3,
             'random_state': 42,
