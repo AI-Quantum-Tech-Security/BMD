@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ML Risk API Test Script
-echo "🚀 Testing ML Risk API..."
+echo " Testing ML Risk API..."
 
 # Set API base URL
 API_URL="http://localhost:8000"
